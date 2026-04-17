@@ -7,6 +7,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import authRoutes from './src/routes/authRoutes';
 import complaintRoutes from './src/routes/complaintRoutes';
 import adminRoutes from './src/routes/adminRoutes';
+import notificationRoutes from './src/routes/notificationRoutes'; // Import notification routes
 import { errorHandler } from './src/middleware/errorHandler';
 import { initSocket } from './src/services/socketService';
 import { startCronJob } from './src/services/cronService';
@@ -39,6 +40,7 @@ app.use('/uploads', express.static('uploads')); // Serve static files from 'uplo
 app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes); // Use notification routes
 
 // Error handling middleware
 app.use(errorHandler);
