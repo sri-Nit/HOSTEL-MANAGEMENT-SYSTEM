@@ -20,6 +20,7 @@ import ComplaintDetail from "./pages/ComplaintDetail";
 import AdminEscalations from "./pages/AdminEscalations";
 import AdminReports from "./pages/AdminReports";
 import ManageComplaintsWarden from "./pages/ManageComplaintsWarden";
+import AdminUserManagement from "./pages/AdminUserManagement";
 
 const queryClient = new QueryClient();
 
@@ -35,12 +36,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
 
-            {/* Shared Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
             </Route>
 
-            {/* Student Routes */}
             <Route element={<ProtectedRoute allowedRoles={['student']} />}>
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/submit-complaint" element={<SubmitComplaint />} />
@@ -49,16 +48,15 @@ const App = () => (
               <Route path="/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
-            {/* Guard Routes */}
             <Route element={<ProtectedRoute allowedRoles={['guard']} />}>
               <Route path="/guard/dashboard" element={<GuardDashboard />} />
               <Route path="/guard/complaints" element={<ManageComplaintsWarden />} />
               <Route path="/guard/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
-            {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUserManagement />} />
               <Route path="/admin/escalations" element={<AdminEscalations />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/complaint/:id" element={<ComplaintDetail />} />

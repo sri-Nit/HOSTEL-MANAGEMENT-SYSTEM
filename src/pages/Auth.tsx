@@ -16,7 +16,7 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'guard' | 'admin'>('student');
+  const [role, setRole] = useState<'student' | 'guard'>('student');
   const [hostelBlock, setHostelBlock] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,14 +103,13 @@ const Auth: React.FC = () => {
               <>
                 <div>
                   <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={(value: 'student' | 'guard' | 'admin') => setRole(value)}>
+                  <Select value={role} onValueChange={(value: 'student' | 'guard') => setRole(value)}>
                     <SelectTrigger id="role">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="guard">Guard</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
