@@ -26,6 +26,14 @@ export const submitComplaint = async (req: AuthRequest, res: Response) => {
       status: 'pending',
     });
 
+    // Notify Student (Confirmation)
+    await emitNotification(
+      req.user._id,
+      `Your complaint #${complaint._id.toString().slice(-6)} has been submitted successfully.`,
+      'complaint_submitted',
+      complaint._id as mongoose.Schema.Types.ObjectId
+    );
+
     // Notify Wardens
     const wardens = await User.find({ role: 'warden' });
     for (const warden of wardens) {
@@ -86,7 +94,6 @@ export const getComplaintById = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    // Basic authorization: student can only view their own, others can view if authorized by role
     if (req.user?.role === 'student' && complaint.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to view this complaint' });
     }
@@ -98,7 +105,7 @@ export const getComplaintById = async (req: AuthRequest, res: Response) => {
 };
 
 export const approveComplaint = async (req: AuthRequest, res: Response) => {
-  const { assignedTo } = req.body; // assignedTo is the service personnel ID
+  const { assignedTo } = req.body;
 
   try {
     const complaint = await Complaint.findById(req.params.id);
@@ -120,7 +127,7 @@ export const approveComplaint = async (req: AuthRequest, res: Response) => {
     complaint.updatedAt = new Date();
     await complaint.save();
 
-    // Notify Student
+    // Notify Student (Approved & Assigned)
     await emitNotification(
       complaint.userId,
       `Your complaint #${complaint._id.toString().slice(-6)} has been approved and assigned to ${servicePersonnel.name}.`,
@@ -160,7 +167,7 @@ export const rejectComplaint = async (req: AuthRequest, res: Response) => {
     complaint.updatedAt = new Date();
     await complaint.save();
 
-    // Notify Student
+    // Notify Student (Rejected)
     await emitNotification(
       complaint.userId,
       `Your complaint #${complaint._id.toString().slice(-6)} has been rejected. Reason: ${rejectionReason}`,
@@ -193,7 +200,7 @@ export const startComplaint = async (req: AuthRequest, res: Response) => {
     complaint.updatedAt = new Date();
     await complaint.save();
 
-    // Notify Student
+    // Notify Student (In Progress)
     await emitNotification(
       complaint.userId,
       `Your complaint #${complaint._id.toString().slice(-6)} is now in progress.`,
@@ -231,7 +238,7 @@ export const resolveComplaint = async (req: AuthRequest, res: Response) => {
     complaint.updatedAt = new Date();
     await complaint.save();
 
-    // Notify Student
+    // Notify Student (Resolved)
     await emitNotification(
       complaint.userId,
       `Your complaint #${complaint._id.toString().slice(-6)} has been resolved!`,
