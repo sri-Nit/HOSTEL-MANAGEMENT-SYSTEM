@@ -4,7 +4,7 @@ export interface UserData {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'warden' | 'service_personnel' | 'admin';
+  role: 'student' | 'guard' | 'admin';
   hostelBlock?: string;
   roomNumber?: string;
   assignedCategories?: string[];

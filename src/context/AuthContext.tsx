@@ -13,7 +13,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user for bypassing authentication
+// Mock user for bypassing authentication - Defaulting to student
 const mockUser: UserData = {
   _id: 'mock-user-id-123',
   name: 'Mock Student',
@@ -25,13 +25,11 @@ const mockUser: UserData = {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize with mock user to bypass login
   const [user, setUser] = useState<UserData | null>(mockUser);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   useEffect(() => {
-    // We'll keep the socket logic but it might fail if the backend isn't running
     if (user) {
       try {
         socket.connect();

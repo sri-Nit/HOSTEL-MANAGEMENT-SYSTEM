@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon, ListChecks, UserCircle, HelpCircle } from 'lucide-react';
+import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon, ListChecks, UserCircle, HelpCircle, ShieldCheck } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -18,15 +18,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
-  const wardenLinks = [
-    { to: '/warden/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/warden/complaints', icon: FileText, label: 'Manage Complaints' },
-    { to: '/profile', icon: UserCircle, label: 'Profile' },
-  ];
-
-  const servicePersonnelLinks = [
-    { to: '/service-personnel/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/service-personnel/assigned-complaints', icon: Wrench, label: 'Assigned Complaints' },
+  const guardLinks = [
+    { to: '/guard/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/guard/complaints', icon: ShieldCheck, label: 'Manage Complaints' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
@@ -44,11 +38,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       case 'student':
         navLinks = studentLinks;
         break;
-      case 'warden':
-        navLinks = wardenLinks;
-        break;
-      case 'service_personnel':
-        navLinks = servicePersonnelLinks;
+      case 'guard':
+        navLinks = guardLinks;
         break;
       case 'admin':
         navLinks = adminLinks;

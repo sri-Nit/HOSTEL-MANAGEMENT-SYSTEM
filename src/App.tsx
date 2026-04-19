@@ -14,14 +14,12 @@ import SubmitComplaint from "./pages/SubmitComplaint";
 import MyComplaints from "./pages/MyComplaints";
 import Profile from "./pages/Profile";
 import NeedHelp from "./pages/NeedHelp";
-import WardenDashboard from "./pages/WardenDashboard";
-import ServicePersonnelDashboard from "./pages/ServicePersonnelDashboard";
+import GuardDashboard from "./pages/GuardDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ComplaintDetail from "./pages/ComplaintDetail";
 import AdminEscalations from "./pages/AdminEscalations";
 import AdminReports from "./pages/AdminReports";
 import ManageComplaintsWarden from "./pages/ManageComplaintsWarden";
-import AssignedComplaintsServicePersonnel from "./pages/AssignedComplaintsServicePersonnel";
 
 const queryClient = new QueryClient();
 
@@ -51,18 +49,11 @@ const App = () => (
               <Route path="/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
-            {/* Warden Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['warden']} />}>
-              <Route path="/warden/dashboard" element={<WardenDashboard />} />
-              <Route path="/warden/complaints" element={<ManageComplaintsWarden />} />
-              <Route path="/warden/complaint/:id" element={<ComplaintDetail />} />
-            </Route>
-
-            {/* Service Personnel Routes */}
-            <Route element={<ProtectedRoute allowedRoles={['service_personnel']} />}>
-              <Route path="/service-personnel/dashboard" element={<ServicePersonnelDashboard />} />
-              <Route path="/service-personnel/assigned-complaints" element={<AssignedComplaintsServicePersonnel />} />
-              <Route path="/service-personnel/complaint/:id" element={<ComplaintDetail />} />
+            {/* Guard Routes */}
+            <Route element={<ProtectedRoute allowedRoles={['guard']} />}>
+              <Route path="/guard/dashboard" element={<GuardDashboard />} />
+              <Route path="/guard/complaints" element={<ManageComplaintsWarden />} />
+              <Route path="/guard/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
             {/* Admin Routes */}

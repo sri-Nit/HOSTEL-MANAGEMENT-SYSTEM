@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/select';
 import { showSuccess, showError } from '@/utils/toast';
 import { Loader2 } from 'lucide-react';
 import { MadeWithDyad } from '@/components/made-with-dyad';
@@ -16,10 +16,9 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'warden' | 'service_personnel' | 'admin'>('student');
+  const [role, setRole] = useState<'student' | 'guard' | 'admin'>('student');
   const [hostelBlock, setHostelBlock] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
-  const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const { login: authContextLogin } = useAuth();
@@ -35,27 +34,21 @@ const Auth: React.FC = () => {
         if (role === 'student') {
           registerData.hostelBlock = hostelBlock;
           registerData.roomNumber = roomNumber;
-        } else if (role === 'service_personnel') {
-          registerData.assignedCategories = assignedCategories.map(cat => cat.trim());
         }
         userData = await register(registerData);
         showSuccess('Registration successful! Please log in.');
-        setIsRegister(false); // Switch to login after successful registration
+        setIsRegister(false);
       } else {
         userData = await login({ email, password });
         authContextLogin(userData);
         showSuccess('Login successful!');
-        navigate('/'); // Redirect to home/dashboard after login
+        navigate('/');
       }
     } catch (error: any) {
       showError(error.response?.data?.message || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAssignedCategories(e.target.value.split(','));
   };
 
   return (
@@ -110,14 +103,13 @@ const Auth: React.FC = () => {
               <>
                 <div>
                   <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={(value: 'student' | 'warden' | 'service_personnel' | 'admin') => setRole(value)}>
+                  <Select value={role} onValueChange={(value: 'student' | 'guard' | 'admin') => setRole(value)}>
                     <SelectTrigger id="role">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="warden">Warden</SelectItem>
-                      <SelectItem value="service_personnel">Service Personnel</SelectItem>
+                      <SelectItem value="guard">Guard</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
@@ -147,19 +139,6 @@ const Auth: React.FC = () => {
                       />
                     </div>
                   </>
-                )}
-                {role === 'service_personnel' && (
-                  <div>
-                    <Label htmlFor="assignedCategories">Assigned Categories (comma-separated)</Label>
-                    <Input
-                      id="assignedCategories"
-                      type="text"
-                      placeholder="Plumbing, Electrical"
-                      value={assignedCategories.join(', ')}
-                      onChange={handleCategoryChange}
-                      required
-                    />
-                  </div>
                 )}
               </>
             )}

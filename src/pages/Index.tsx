@@ -10,23 +10,19 @@ const Index = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      // Default to student dashboard if authenticated (which is now the default)
       if (isAuthenticated) {
         switch (user?.role) {
           case 'student':
             navigate('/student/dashboard');
             break;
-          case 'warden':
-            navigate('/warden/dashboard');
-            break;
-          case 'service_personnel':
-            navigate('/service-personnel/dashboard');
+          case 'guard':
+            navigate('/guard/dashboard');
             break;
           case 'admin':
             navigate('/admin/dashboard');
             break;
           default:
-            navigate('/student/dashboard'); // Default fallback
+            navigate('/student/dashboard');
             break;
         }
       } else {
