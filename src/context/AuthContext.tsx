@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { getCurrentUser, logout as authLogout, UserData } from '@/services/auth';
+import { getCurrentUser, logout as authLogout } from '@/services/auth';
+import { UserData } from '@/services/auth.types';
 import { socket } from '@/services/socket';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess } from '@/utils/toast';
 
 interface AuthContextType {
   user: UserData | null;
@@ -13,31 +14,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user for bypassing authentication - Defaulting to student
-const mockUser: UserData = {
-  _id: 'mock-user-id-123',
-  name: 'Mock Student',
-  email: 'student@example.com',
-  role: 'student',
-  hostelBlock: 'Block A',
-  roomNumber: '101',
-  token: 'mock-token-for-development'
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserData | null>(mockUser);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [user, setUser] = useState<UserData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      setIsAuthenticated(true);
       try {
         socket.connect();
-        socket.emit('joinRoom', user._id);
+        socket.emit('joinRoom', currentUser._id);
       } catch (e) {
-        console.warn("Socket connection failed, but continuing in mock mode.");
+        console.warn("Socket connection failed, continuing in mock mode.");
       }
     }
+    setIsLoading(false);
 
     const handleNewNotification = (notification: any) => {
       showSuccess(`New Notification: ${notification.message}`);
@@ -49,11 +43,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       socket.off('newNotification', handleNewNotification);
       socket.disconnect();
     };
-  }, [user]);
+  }, []);
 
   const handleLogin = (userData: UserData) => {
     setUser(userData);
     setIsAuthenticated(true);
+    localStorage.setItem('user', JSON.stringify(userData));
     socket.connect();
     socket.emit('joinRoom', userData._id);
   };

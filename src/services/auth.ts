@@ -1,30 +1,46 @@
-import api from './api';
+import { UserData } from './auth.types';
 
-export interface UserData {
-  _id: string;
-  name: string;
-  email: string;
-  role: 'student' | 'guard' | 'admin';
-  hostelBlock?: string;
-  roomNumber?: string;
-  assignedCategories?: string[];
-  token: string;
-}
-
-export const register = async (userData: any) => {
-  const response = await api.post('/auth/register', userData);
-  if (response.data.token) {
-    localStorage.setItem('user', JSON.stringify(response.data));
-  }
-  return response.data;
+// Mock database in localStorage
+const getMockUsers = () => JSON.parse(localStorage.getItem('mock_users') || '[]');
+const saveMockUser = (user: any) => {
+  const users = getMockUsers();
+  users.push(user);
+  localStorage.setItem('mock_users', JSON.stringify(users));
 };
 
-export const login = async (userData: any) => {
-  const response = await api.post('/auth/login', userData);
-  if (response.data.token) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+export const register = async (userData: any) => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const users = getMockUsers();
+  if (users.find((u: any) => u.email === userData.email)) {
+    throw { response: { data: { message: 'User already exists' } } };
   }
-  return response.data;
+
+  const newUser = {
+    ...userData,
+    _id: Math.random().toString(36).substr(2, 9),
+    token: 'mock-jwt-token-' + Math.random().toString(36).substr(2, 5)
+  };
+  
+  saveMockUser(newUser);
+  return newUser;
+};
+
+export const login = async (credentials: any) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  const users = getMockUsers();
+  const user = users.find((u: any) => u.email === credentials.email && u.password === credentials.password);
+  
+  if (!user) {
+    throw { response: { data: { message: 'Invalid email or password' } } };
+  }
+
+  const userData = { ...user };
+  delete userData.password;
+  localStorage.setItem('user', JSON.stringify(userData));
+  return userData;
 };
 
 export const logout = () => {
