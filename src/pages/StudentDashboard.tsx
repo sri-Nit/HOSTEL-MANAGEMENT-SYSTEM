@@ -6,6 +6,7 @@ import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ListChecks, UserCircle, HelpCircle } from 'lucide-react';
+import FeedbackForm from '@/components/dashboard/FeedbackForm';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -43,56 +44,62 @@ const StudentDashboard: React.FC = () => {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Link to="/student/submit-complaint">
-                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
-                    <PlusCircle size={24} />
-                    Submit New Complaint
-                  </Button>
-                </Link>
-                <Link to="/student/my-complaints">
-                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
-                    <ListChecks size={24} />
-                    View My Complaints
-                  </Button>
-                </Link>
-                <Link to="/student/need-help">
-                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
-                    <HelpCircle size={24} />
-                    Need Help?
-                  </Button>
-                </Link>
-                <Link to="/profile">
-                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
-                    <UserCircle size={24} />
-                    Manage Profile
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Link to="/student/submit-complaint">
+                    <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                      <PlusCircle size={24} />
+                      Submit New Complaint
+                    </Button>
+                  </Link>
+                  <Link to="/student/my-complaints">
+                    <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                      <ListChecks size={24} />
+                      View My Complaints
+                    </Button>
+                  </Link>
+                  <Link to="/student/need-help">
+                    <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                      <HelpCircle size={24} />
+                      Need Help?
+                    </Button>
+                  </Link>
+                  <Link to="/profile">
+                    <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                      <UserCircle size={24} />
+                      Manage Profile
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-sm border-l-2 border-blue-500 pl-3 py-1">
-                    <p className="font-medium">Complaint #1234 Updated</p>
-                    <p className="text-xs text-muted-foreground">Status changed to In Progress</p>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-sm border-l-2 border-blue-500 pl-3 py-1">
+                      <p className="font-medium">Complaint #1234 Updated</p>
+                      <p className="text-xs text-muted-foreground">Status changed to In Progress</p>
+                    </div>
+                    <div className="text-sm border-l-2 border-green-500 pl-3 py-1">
+                      <p className="font-medium">New Message Received</p>
+                      <p className="text-xs text-muted-foreground">From: Warden</p>
+                    </div>
                   </div>
-                  <div className="text-sm border-l-2 border-green-500 pl-3 py-1">
-                    <p className="font-medium">New Message Received</p>
-                    <p className="text-xs text-muted-foreground">From: Warden</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <FeedbackForm />
+            </div>
           </div>
         </div>
         <MadeWithDyad />
