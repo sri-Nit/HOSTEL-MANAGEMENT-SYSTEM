@@ -6,8 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { showSuccess, showError } from '@/utils/toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
 
 interface Complaint {
   _id: string;
@@ -15,6 +26,7 @@ interface Complaint {
   description: string;
   status: string;
   createdAt: string;
+  rejectionReason?: string;
   location: {
     block: string;
     floor: string;
@@ -34,6 +46,8 @@ const statusColors: Record<string, string> = {
 const AdminAllComplaints: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -41,10 +55,14 @@ const AdminAllComplaints: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
-  useEffect(() => {
+  const loadComplaints = () => {
     const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
     setComplaints(allComplaints);
     setFilteredComplaints(allComplaints);
+  };
+
+  useEffect(() => {
+    loadComplaints();
   }, []);
 
   useEffect(() => {
@@ -73,6 +91,21 @@ const AdminAllComplaints: React.FC = () => {
 
     setFilteredComplaints(result);
   }, [statusFilter, categoryFilter, searchTerm, sortOrder, complaints]);
+
+  const handleUpdateStatus = (id: string, newStatus: string, reason?: string) => {
+    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+    const updatedComplaints = allComplaints.map((c: Complaint) => {
+      if (c._id === id) {
+        return { ...c, status: newStatus, rejectionReason: reason || c.rejectionReason };
+      }
+      return c;
+    });
+    localStorage.setItem('user_complaints', JSON.stringify(updatedComplaints));
+    showSuccess(`Complaint ${newStatus} successfully!`);
+    loadComplaints();
+    setRejectionReason('');
+    setSelectedComplaintId(null);
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
@@ -152,9 +185,9 @@ const AdminAllComplaints: React.FC = () => {
                     <TableHead className="w-[100px]">ID</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead className="max-w-[300px]">Description</TableHead>
+                    <TableHead className="max-w-[250px]">Description</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Date Submitted</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -176,7 +209,7 @@ const AdminAllComplaints: React.FC = () => {
                             </span>
                           ) : 'N/A'}
                         </TableCell>
-                        <TableCell className="max-w-[300px] truncate text-sm">
+                        <TableCell className="max-w-[250px] truncate text-sm">
                           {complaint.description}
                         </TableCell>
                         <TableCell>
@@ -184,8 +217,58 @@ const AdminAllComplaints: React.FC = () => {
                             {complaint.status.replace('_', ' ')}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(complaint.createdAt).toLocaleDateString()}
+                        <TableCell>
+                          {complaint.status === 'pending' ? (
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50"
+                                onClick={() => handleUpdateStatus(complaint._id, 'approved')}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Approve
+                              </Button>
+                              
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50"
+                                    onClick={() => setSelectedComplaintId(complaint._id)}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Reject Complaint</DialogTitle>
+                                    <DialogDescription>
+                                      Please provide a reason for rejecting this complaint. This will be visible to the student.
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <Textarea 
+                                    placeholder="Enter rejection reason..." 
+                                    value={rejectionReason}
+                                    onChange={(e) => setRejectionReason(e.target.value)}
+                                  />
+                                  <DialogFooter>
+                                    <Button 
+                                      variant="destructive" 
+                                      onClick={() => handleUpdateStatus(complaint._id, 'rejected', rejectionReason)}
+                                      disabled={!rejectionReason}
+                                    >
+                                      Confirm Rejection
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">No actions available</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
