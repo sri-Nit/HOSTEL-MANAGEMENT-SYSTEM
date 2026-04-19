@@ -10,9 +10,8 @@ const Index = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      if (!isAuthenticated) {
-        navigate('/auth');
-      } else {
+      // Default to student dashboard if authenticated (which is now the default)
+      if (isAuthenticated) {
         switch (user?.role) {
           case 'student':
             navigate('/student/dashboard');
@@ -27,9 +26,11 @@ const Index = () => {
             navigate('/admin/dashboard');
             break;
           default:
-            navigate('/auth'); // Fallback if role is not recognized
+            navigate('/student/dashboard'); // Default fallback
             break;
         }
+      } else {
+        navigate('/auth');
       }
     }
   }, [isAuthenticated, user, isLoading, navigate]);

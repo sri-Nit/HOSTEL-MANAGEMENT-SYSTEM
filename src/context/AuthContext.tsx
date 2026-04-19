@@ -13,30 +13,45 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock user for bypassing authentication
+const mockUser: UserData = {
+  _id: 'mock-user-id-123',
+  name: 'Mock Student',
+  email: 'student@example.com',
+  role: 'student',
+  hostelBlock: 'Block A',
+  roomNumber: '101',
+  token: 'mock-token-for-development'
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Initialize with mock user to bypass login
+  const [user, setUser] = useState<UserData | null>(mockUser);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   useEffect(() => {
-    const storedUser = getCurrentUser();
-    if (storedUser) {
-      setUser(storedUser);
-      setIsAuthenticated(true);
-      socket.connect();
-      socket.emit('joinRoom', storedUser._id);
+    // We'll keep the socket logic but it might fail if the backend isn't running
+    if (user) {
+      try {
+        socket.connect();
+        socket.emit('joinRoom', user._id);
+      } catch (e) {
+        console.warn("Socket connection failed, but continuing in mock mode.");
+      }
     }
-    setIsLoading(false);
 
-    socket.on('newNotification', (notification) => {
+    const handleNewNotification = (notification: any) => {
       showSuccess(`New Notification: ${notification.message}`);
-    });
+    };
+
+    socket.on('newNotification', handleNewNotification);
 
     return () => {
-      socket.off('newNotification');
+      socket.off('newNotification', handleNewNotification);
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
   const handleLogin = (userData: UserData) => {
     setUser(userData);

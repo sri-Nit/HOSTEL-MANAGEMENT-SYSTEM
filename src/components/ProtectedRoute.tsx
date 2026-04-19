@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { MadeWithDyad } from './made-with-dyad';
 import { Loader2 } from 'lucide-react';
@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -21,14 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />; // Redirect to home or a permission denied page
-  }
-
+  // Authentication check removed to allow access to all pages
   return <Outlet />;
 };
 
