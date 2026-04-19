@@ -2,13 +2,13 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccess, showError } from '@/utils/toast';
-import api from '@/services/api';
 
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
@@ -19,6 +19,7 @@ const formSchema = z.object({
 });
 
 const ComplaintForm = () => {
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,15 +33,31 @@ const ComplaintForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // In a real app, we'd send this to the backend
-      // await api.post('/complaints', {
-      //   category: values.category,
-      //   description: values.description,
-      //   location: { block: values.block, floor: values.floor, room: values.room }
-      // });
-      console.log("Form submitted:", values);
-      showSuccess("Complaint submitted successfully (Mock)!");
+      // Get existing complaints from localStorage
+      const existingComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+      
+      // Create new complaint object
+      const newComplaint = {
+        _id: Math.random().toString(36).substr(2, 9),
+        category: values.category,
+        description: values.description,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        location: {
+          block: values.block,
+          floor: values.floor,
+          room: values.room
+        }
+      };
+
+      // Save back to localStorage
+      localStorage.setItem('user_complaints', JSON.stringify([newComplaint, ...existingComplaints]));
+      
+      showSuccess("Complaint submitted successfully!");
       form.reset();
+      
+      // Redirect to My Complaints to see the result
+      navigate('/student/my-complaints');
     } catch (error) {
       showError("Failed to submit complaint.");
     }
