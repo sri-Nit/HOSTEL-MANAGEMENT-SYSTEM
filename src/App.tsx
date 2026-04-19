@@ -21,6 +21,7 @@ import AdminEscalations from "./pages/AdminEscalations";
 import AdminReports from "./pages/AdminReports";
 import ManageComplaintsWarden from "./pages/ManageComplaintsWarden";
 import AdminUserManagement from "./pages/AdminUserManagement";
+import AdminAllComplaints from "./pages/AdminAllComplaints";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
 
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/all-complaints" element={<AdminAllComplaints />} />
               <Route path="/admin/users" element={<AdminUserManagement />} />
               <Route path="/admin/escalations" element={<AdminEscalations />} />
               <Route path="/admin/reports" element={<AdminReports />} />

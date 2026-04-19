@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Home, FileText, Shield, BarChart, ListChecks, UserCircle, HelpCircle, ShieldCheck, Users } from 'lucide-react';
+import { Home, FileText, Shield, BarChart, ListChecks, UserCircle, HelpCircle, ShieldCheck, Users, ClipboardList } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -26,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   const adminLinks = [
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/admin/all-complaints', icon: ClipboardList, label: 'All Complaints' },
     { to: '/admin/users', icon: Users, label: 'User Management' },
     { to: '/admin/escalations', icon: Shield, label: 'Escalations' },
     { to: '/admin/reports', icon: BarChart, label: 'Reports' },

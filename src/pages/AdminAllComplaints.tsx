@@ -1,0 +1,204 @@
+import React, { useEffect, useState } from 'react';
+import Sidebar from '@/components/Sidebar';
+import { MadeWithDyad } from '@/components/made-with-dyad';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface Complaint {
+  _id: string;
+  category: string;
+  description: string;
+  status: string;
+  createdAt: string;
+  location: {
+    block: string;
+    floor: string;
+    room: string;
+  };
+}
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+  in_progress: 'bg-yellow-100 text-yellow-800',
+  resolved: 'bg-green-200 text-green-900',
+  rejected: 'bg-red-100 text-red-800',
+  escalated: 'bg-orange-100 text-orange-800',
+};
+
+const AdminAllComplaints: React.FC = () => {
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
+  
+  // Filters
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+
+  useEffect(() => {
+    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+    setComplaints(allComplaints);
+    setFilteredComplaints(allComplaints);
+  }, []);
+
+  useEffect(() => {
+    let result = [...complaints];
+
+    if (statusFilter !== 'all') {
+      result = result.filter(c => c.status === statusFilter);
+    }
+
+    if (categoryFilter !== 'all') {
+      result = result.filter(c => c.category === categoryFilter);
+    }
+
+    if (searchTerm) {
+      result = result.filter(c => 
+        c.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c._id.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    result.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    setFilteredComplaints(result);
+  }, [statusFilter, categoryFilter, searchTerm, sortOrder, complaints]);
+
+  return (
+    <div className="flex min-h-[calc(100vh-64px)]">
+      <Sidebar />
+      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
+        <div className="container mx-auto max-w-7xl">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">All Complaints</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage and monitor every complaint submitted in the system.</p>
+          </div>
+
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                Filters & Search
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search ID or description..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="escalated">Escalated</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="Plumbing">Plumbing</SelectItem>
+                    <SelectItem value="Electrical">Electrical</SelectItem>
+                    <SelectItem value="Carpentry">Carpentry</SelectItem>
+                    <SelectItem value="Internet">Internet/WiFi</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
+                >
+                  <ArrowUpDown className="h-4 w-4" />
+                  Sort: {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="max-w-[300px]">Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date Submitted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredComplaints.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                        No complaints found matching your filters.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredComplaints.map((complaint) => (
+                      <TableRow key={complaint._id}>
+                        <TableCell className="font-mono text-xs">#{complaint._id.slice(-6)}</TableCell>
+                        <TableCell className="font-medium">{complaint.category}</TableCell>
+                        <TableCell>
+                          {complaint.location ? (
+                            <span className="text-xs">
+                              Block {complaint.location.block}, Room {complaint.location.room}
+                            </span>
+                          ) : 'N/A'}
+                        </TableCell>
+                        <TableCell className="max-w-[300px] truncate text-sm">
+                          {complaint.description}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={statusColors[complaint.status]}>
+                            {complaint.status.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(complaint.createdAt).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+        <MadeWithDyad />
+      </main>
+    </div>
+  );
+};
+
+export default AdminAllComplaints;
