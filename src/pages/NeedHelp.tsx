@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import MessageInterface from '@/components/messaging/MessageInterface';
+import MessageList from '@/components/messaging/MessageList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Phone, Mail, Clock, ShieldAlert } from 'lucide-react';
 
@@ -16,15 +17,19 @@ const NeedHelp: React.FC = () => {
     <div className="flex min-h-[calc(100vh-64px)]">
       <Sidebar />
       <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
-        <div className="container max-w-5xl mx-auto">
+        <div className="container max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-gray-100">Need Help?</h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             Get in touch with the hostel staff for any queries or emergencies.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <MessageInterface />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column: Messaging */}
+            <div className="lg:col-span-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <MessageInterface />
+                <MessageList />
+              </div>
               
               <Card>
                 <CardHeader>
@@ -52,7 +57,8 @@ const NeedHelp: React.FC = () => {
               </Card>
             </div>
 
-            <div className="space-y-6">
+            {/* Right Column: Contacts */}
+            <div className="lg:col-span-4 space-y-6">
               <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
                 <CardHeader>
                   <CardTitle className="text-lg text-red-700 dark:text-red-400 flex items-center gap-2">
@@ -68,6 +74,10 @@ const NeedHelp: React.FC = () => {
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <Phone className="h-3 w-3" />
                         {contact.phone}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                        <Mail className="h-3 w-3" />
+                        {contact.email}
                       </div>
                     </div>
                   ))}
