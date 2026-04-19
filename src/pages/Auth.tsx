@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { register, login } from '@/services/auth';
@@ -22,8 +22,15 @@ const Auth: React.FC = () => {
   const [assignedCategories, setAssignedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { login: authContextLogin } = useAuth();
+  const { login: authContextLogin, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Automatically redirect if already authenticated (mocked)
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(`/${user.role}/dashboard`);
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +47,11 @@ const Auth: React.FC = () => {
         }
         userData = await register(registerData);
         showSuccess('Registration successful! Please log in.');
-        setIsRegister(false); // Switch to login after successful registration
+        setIsRegister(false);
       } else {
         userData = await login({ email, password });
         authContextLogin(userData);
         showSuccess('Login successful!');
-        navigate('/'); // Redirect to home/dashboard after login
       }
     } catch (error: any) {
       showError(error.response?.data?.message || 'Authentication failed.');

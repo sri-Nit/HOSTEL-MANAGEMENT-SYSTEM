@@ -1,7 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { getCurrentUser, logout as authLogout, UserData } from '@/services/auth';
-import { socket } from '@/services/socket';
-import { showSuccess, showError } from '@/utils/toast';
+import { UserData } from '@/services/auth';
+import { showSuccess } from '@/utils/toast';
 
 interface AuthContextType {
   user: UserData | null;
@@ -30,41 +29,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
 
-  useEffect(() => {
-    // We'll keep the socket logic but it might fail if the backend isn't running
-    if (user) {
-      try {
-        socket.connect();
-        socket.emit('joinRoom', user._id);
-      } catch (e) {
-        console.warn("Socket connection failed, but continuing in mock mode.");
-      }
-    }
-
-    const handleNewNotification = (notification: any) => {
-      showSuccess(`New Notification: ${notification.message}`);
-    };
-
-    socket.on('newNotification', handleNewNotification);
-
-    return () => {
-      socket.off('newNotification', handleNewNotification);
-      socket.disconnect();
-    };
-  }, [user]);
-
   const handleLogin = (userData: UserData) => {
     setUser(userData);
     setIsAuthenticated(true);
-    socket.connect();
-    socket.emit('joinRoom', userData._id);
   };
 
   const handleLogout = () => {
-    authLogout();
     setUser(null);
     setIsAuthenticated(false);
-    socket.disconnect();
     showSuccess("Logged out successfully!");
   };
 
