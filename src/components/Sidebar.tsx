@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Home, FileText, Shield, Wrench, BarChart } from 'lucide-react';
+import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/escalations', icon: Shield, label: 'Escalations' },
     { to: '/admin/reports', icon: BarChart, label: 'Reports' },
-    { to: '/admin/manage-users', icon: UserIcon, label: 'Manage Users' }, // Placeholder for future
+    { to: '/admin/manage-users', icon: UserIcon, label: 'Manage Users' },
   ];
 
   let navLinks: { to: string; icon: React.ElementType; label: string }[] = [];
