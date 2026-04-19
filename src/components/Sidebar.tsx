@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon, ListChecks, UserCircle } from 'lucide-react';
+import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon, ListChecks, UserCircle, HelpCircle } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -14,6 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/student/submit-complaint', icon: FileText, label: 'Submit Complaint' },
     { to: '/student/my-complaints', icon: ListChecks, label: 'My Complaints' },
+    { to: '/student/need-help', icon: HelpCircle, label: 'Need Help' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 

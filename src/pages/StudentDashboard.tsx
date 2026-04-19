@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListChecks, UserCircle } from 'lucide-react';
+import { PlusCircle, ListChecks, UserCircle, HelpCircle } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -61,6 +61,12 @@ const StudentDashboard: React.FC = () => {
                     View My Complaints
                   </Button>
                 </Link>
+                <Link to="/student/need-help">
+                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                    <HelpCircle size={24} />
+                    Need Help?
+                  </Button>
+                </Link>
                 <Link to="/profile">
                   <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
                     <UserCircle size={24} />
@@ -72,13 +78,19 @@ const StudentDashboard: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
+                <CardTitle>Recent Activity</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  If you have an urgent issue that requires immediate attention, please contact the hostel warden directly.
-                </p>
-                <Button variant="link" className="p-0 h-auto">Contact Warden</Button>
+                <div className="space-y-4">
+                  <div className="text-sm border-l-2 border-blue-500 pl-3 py-1">
+                    <p className="font-medium">Complaint #1234 Updated</p>
+                    <p className="text-xs text-muted-foreground">Status changed to In Progress</p>
+                  </div>
+                  <div className="text-sm border-l-2 border-green-500 pl-3 py-1">
+                    <p className="font-medium">New Message Received</p>
+                    <p className="text-xs text-muted-foreground">From: Warden</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

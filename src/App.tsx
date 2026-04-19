@@ -13,6 +13,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import MyComplaints from "./pages/MyComplaints";
 import Profile from "./pages/Profile";
+import NeedHelp from "./pages/NeedHelp";
 import WardenDashboard from "./pages/WardenDashboard";
 import ServicePersonnelDashboard from "./pages/ServicePersonnelDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/submit-complaint" element={<SubmitComplaint />} />
               <Route path="/student/my-complaints" element={<MyComplaints />} />
+              <Route path="/student/need-help" element={<NeedHelp />} />
               <Route path="/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
