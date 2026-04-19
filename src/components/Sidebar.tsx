@@ -1,34 +1,39 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon } from 'lucide-react';
+import { Home, FileText, Shield, Wrench, BarChart, User as UserIcon, ListChecks, UserCircle } from 'lucide-react';
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const { user } = useAuth();
+  const location = useLocation();
 
   const studentLinks = [
     { to: '/student/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/student/submit-complaint', icon: FileText, label: 'Submit Complaint' },
+    { to: '/student/my-complaints', icon: ListChecks, label: 'My Complaints' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const wardenLinks = [
     { to: '/warden/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/warden/complaints', icon: FileText, label: 'Manage Complaints' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const servicePersonnelLinks = [
     { to: '/service-personnel/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/service-personnel/assigned-complaints', icon: Wrench, label: 'Assigned Complaints' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const adminLinks = [
     { to: '/admin/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/admin/escalations', icon: Shield, label: 'Escalations' },
     { to: '/admin/reports', icon: BarChart, label: 'Reports' },
-    { to: '/admin/manage-users', icon: UserIcon, label: 'Manage Users' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   let navLinks: { to: string; icon: React.ElementType; label: string }[] = [];
@@ -64,7 +69,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
               <Link
                 key={link.to}
                 to={link.to}
-                className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  location.pathname === link.to ? "bg-sidebar-accent text-sidebar-accent-foreground" : "transparent"
+                )}
               >
                 <link.icon className="h-4 w-4" />
                 {link.label}

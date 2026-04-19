@@ -1,13 +1,20 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { MadeWithDyad } from '@/components/made-with-dyad';
-import ComplaintForm from '@/components/complaints/ComplaintForm';
-import ComplaintList from '@/components/complaints/ComplaintList';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, ListChecks, UserCircle } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
+
+  const stats = [
+    { label: 'Total Complaints', value: '2', color: 'text-blue-600' },
+    { label: 'In Progress', value: '1', color: 'text-yellow-600' },
+    { label: 'Resolved', value: '0', color: 'text-green-600' },
+  ];
 
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
@@ -17,51 +24,64 @@ const StudentDashboard: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Student Dashboard</h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Welcome back, {user?.name}. Manage your hostel complaints here.
+              Welcome back, {user?.name}. Here's an overview of your hostel complaints.
             </p>
           </div>
 
-          <Tabs defaultValue="my-complaints" className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="my-complaints">My Complaints</TabsTrigger>
-              <TabsTrigger value="submit-new">Submit New</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="my-complaints" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <h2 className="text-xl font-semibold mb-4">Recent Complaints</h2>
-                  <ComplaintList />
-                </div>
-                <div className="space-y-6">
-                  <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border shadow-sm">
-                    <h3 className="font-semibold mb-2">Quick Stats</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Total Submitted</span>
-                        <span className="font-bold">2</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>In Progress</span>
-                        <span className="font-bold text-yellow-600">1</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Resolved</span>
-                        <span className="font-bold text-green-600">0</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {stats.map((stat) => (
+              <Card key={stat.label}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    {stat.label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-            <TabsContent value="submit-new">
-              <div className="max-w-2xl">
-                <h2 className="text-xl font-semibold mb-4">Submit a New Complaint</h2>
-                <ComplaintForm />
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Link to="/student/submit-complaint">
+                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                    <PlusCircle size={24} />
+                    Submit New Complaint
+                  </Button>
+                </Link>
+                <Link to="/student/my-complaints">
+                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                    <ListChecks size={24} />
+                    View My Complaints
+                  </Button>
+                </Link>
+                <Link to="/profile">
+                  <Button className="w-full h-24 text-lg flex flex-col gap-2" variant="outline">
+                    <UserCircle size={24} />
+                    Manage Profile
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Need Help?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If you have an urgent issue that requires immediate attention, please contact the hostel warden directly.
+                </p>
+                <Button variant="link" className="p-0 h-auto">Contact Warden</Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
         <MadeWithDyad />
       </main>

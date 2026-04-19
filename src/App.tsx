@@ -11,6 +11,8 @@ import Navbar from "./components/Navbar";
 import Auth from "./pages/Auth";
 import StudentDashboard from "./pages/StudentDashboard";
 import SubmitComplaint from "./pages/SubmitComplaint";
+import MyComplaints from "./pages/MyComplaints";
+import Profile from "./pages/Profile";
 import WardenDashboard from "./pages/WardenDashboard";
 import ServicePersonnelDashboard from "./pages/ServicePersonnelDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -34,10 +36,16 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
 
+            {/* Shared Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+
             {/* Student Routes */}
             <Route element={<ProtectedRoute allowedRoles={['student']} />}>
               <Route path="/student/dashboard" element={<StudentDashboard />} />
               <Route path="/student/submit-complaint" element={<SubmitComplaint />} />
+              <Route path="/student/my-complaints" element={<MyComplaints />} />
               <Route path="/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
@@ -63,7 +71,6 @@ const App = () => (
               <Route path="/admin/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
