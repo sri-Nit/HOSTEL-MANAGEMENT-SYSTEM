@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccess, showError } from '@/utils/toast';
+import { useAuth } from '@/context/AuthContext';
 
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
@@ -20,6 +21,7 @@ const formSchema = z.object({
 
 const ComplaintForm = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,6 +41,7 @@ const ComplaintForm = () => {
       // Create new complaint object
       const newComplaint = {
         _id: Math.random().toString(36).substr(2, 9),
+        studentName: user?.name || 'Unknown Student',
         category: values.category,
         description: values.description,
         status: 'pending',

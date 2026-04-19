@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, ArrowUpDown, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, CheckCircle, XCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { showSuccess, showError } from '@/utils/toast';
 import {
@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface Complaint {
   _id: string;
+  studentName: string;
   category: string;
   description: string;
   status: string;
@@ -79,7 +80,7 @@ const AdminAllComplaints: React.FC = () => {
     if (searchTerm) {
       result = result.filter(c => 
         c.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c._id.toLowerCase().includes(searchTerm.toLowerCase())
+        c.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -129,7 +130,7 @@ const AdminAllComplaints: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search ID or description..."
+                    placeholder="Search student or description..."
                     className="pl-8"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -182,7 +183,7 @@ const AdminAllComplaints: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead>Student Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead className="max-w-[250px]">Description</TableHead>
@@ -200,8 +201,13 @@ const AdminAllComplaints: React.FC = () => {
                   ) : (
                     filteredComplaints.map((complaint) => (
                       <TableRow key={complaint._id}>
-                        <TableCell className="font-mono text-xs">#{complaint._id.slice(-6)}</TableCell>
-                        <TableCell className="font-medium">{complaint.category}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            {complaint.studentName || 'Anonymous'}
+                          </div>
+                        </TableCell>
+                        <TableCell>{complaint.category}</TableCell>
                         <TableCell>
                           {complaint.location ? (
                             <span className="text-xs">
