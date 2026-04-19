@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { MadeWithDyad } from '@/components/made-with-dyad';
 import MessageInterface from '@/components/messaging/MessageInterface';
@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Phone, Mail, Clock, ShieldAlert } from 'lucide-react';
 
 const NeedHelp: React.FC = () => {
+  const [selectedRecipient, setSelectedRecipient] = useState('warden');
+
   const contacts = [
     { role: 'Warden', name: 'Mr. Rajesh Kumar', phone: '+91 98765 43210', email: 'warden.blocka@hcms.edu' },
     { role: 'Security Desk', name: 'Main Gate', phone: '+91 98765 43211', email: 'security@hcms.edu' },
@@ -27,8 +29,8 @@ const NeedHelp: React.FC = () => {
             {/* Left Column: Messaging */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <MessageInterface />
-                <MessageList />
+                <MessageInterface recipient={selectedRecipient} setRecipient={setSelectedRecipient} />
+                <MessageList recipient={selectedRecipient} />
               </div>
               
               <Card>

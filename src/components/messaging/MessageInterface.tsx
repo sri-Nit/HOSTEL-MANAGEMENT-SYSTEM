@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, User } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 
-const MessageInterface = () => {
-  const [recipient, setRecipient] = useState('');
-  const [message, setMessage] = useState('');
+interface MessageInterfaceProps {
+  recipient: string;
+  setRecipient: (value: string) => void;
+}
+
+const MessageInterface: React.FC<MessageInterfaceProps> = ({ recipient, setRecipient }) => {
+  const [message, setMessage] = React.useState('');
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
