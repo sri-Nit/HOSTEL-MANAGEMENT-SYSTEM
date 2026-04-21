@@ -52,16 +52,17 @@ const Auth: React.FC = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
-      {/* Full-screen Background Image */}
+      {/* Full-screen Background Image with adjusted contrast/brightness for realism */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 hover:scale-105"
         style={{ 
-          backgroundImage: 'url("https://images.unsplash.com/photo-1555854817-5b2260d50c47?q=80&w=2070&auto=format&fit=crop")' 
+          backgroundImage: 'url("https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=2070&auto=format&fit=crop")',
+          filter: 'contrast(1.1) brightness(0.7)'
         }}
       />
       
-      {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-br from-black/80 via-black/50 to-primary/40 backdrop-blur-[2px]" />
+      {/* Dark Gradient Overlay - slightly more subtle to let the real photo show through */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-br from-black/60 via-black/30 to-primary/20 backdrop-blur-[1px]" />
 
       {/* Auth Card with Glassmorphism */}
       <Card className="relative z-20 w-full max-w-md border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl text-white overflow-hidden animate-in fade-in zoom-in duration-500">
