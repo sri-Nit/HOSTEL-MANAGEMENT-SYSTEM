@@ -42,10 +42,10 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col min-h-[calc(100vh-64px)]">
+    <div className="w-64 bg-[#020617] border-r border-white/5 flex flex-col min-h-[calc(100vh-64px)]">
       <div className="flex-1 py-8 px-4 space-y-8">
         <div>
-          <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">
+          <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-6">
             {user?.role === 'guard' ? 'Warder' : user?.role} Navigation
           </h2>
           <nav className="space-y-1.5">
@@ -58,13 +58,13 @@ const Sidebar: React.FC = () => {
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 group",
                     isActive 
-                      ? "bg-slate-900 text-white shadow-xl shadow-slate-200" 
-                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                      ? "bg-[#d9531e] text-white shadow-xl shadow-[#d9531e]/20" 
+                      : "text-slate-400 hover:text-white hover:bg-white/5"
                   )}
                 >
                   <link.icon className={cn(
                     "h-5 w-5 transition-transform group-hover:scale-110",
-                    isActive ? "text-white" : "text-slate-400 group-hover:text-slate-900"
+                    isActive ? "text-white" : "text-slate-500 group-hover:text-white"
                   )} />
                   {link.label}
                 </Link>
@@ -74,12 +74,12 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
       
-      <div className="p-6 border-t border-slate-100">
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">System Status</p>
+      <div className="p-6 border-t border-white/5">
+        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">System Status</p>
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            <span className="text-xs font-bold text-slate-700">Operational</span>
+            <span className="text-xs font-bold text-slate-300">Operational</span>
           </div>
         </div>
       </div>
