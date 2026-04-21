@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   const guardLinks = [
     { to: '/guard/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/guard/complaints', icon: ShieldCheck, label: 'Manage Complaints' },
+    { to: '/guard/complaints', icon: ShieldCheck, label: 'Verify Complaints' },
     { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
