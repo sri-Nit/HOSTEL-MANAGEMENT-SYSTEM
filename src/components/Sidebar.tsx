@@ -4,9 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { Home, FileText, Shield, BarChart, ListChecks, UserCircle, HelpCircle, ShieldCheck, Users, ClipboardList } from 'lucide-react';
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-const Sidebar: React.FC<SidebarProps> = ({ className }) => {
+const Sidebar: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -44,26 +42,44 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   }
 
   return (
-    <div className={cn("pb-12 w-64 border-r bg-sidebar text-sidebar-foreground", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-            {user?.role ? `${user.role === 'guard' ? 'Warder' : user.role.charAt(0).toUpperCase() + user.role.slice(1)} Panel` : 'Navigation'}
+    <div className="w-64 bg-[#0f172a] border-r border-white/10 flex flex-col min-h-[calc(100vh-73px)]">
+      <div className="flex-1 py-6 px-4 space-y-8">
+        <div>
+          <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">
+            {user?.role === 'guard' ? 'Warder' : user?.role} Menu
           </h2>
-          <div className="space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                  location.pathname === link.to ? "bg-sidebar-accent text-sidebar-accent-foreground" : "transparent"
-                )}
-              >
-                <link.icon className="h-4 w-4" />
-                {link.label}
-              </Link>
-            ))}
+          <nav className="space-y-1">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.to;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group",
+                    isActive 
+                      ? "bg-[#d9531e] text-white shadow-lg shadow-orange-900/20" 
+                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <link.icon className={cn(
+                    "h-5 w-5 transition-transform group-hover:scale-110",
+                    isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                  )} />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+      
+      <div className="p-4 border-t border-white/10">
+        <div className="bg-white/5 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1">System Status</p>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-bold text-white/80">All Systems Operational</span>
           </div>
         </div>
       </div>
