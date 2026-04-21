@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -32,7 +32,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 18 78% 48%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --sidebar-background: 222.2 47.4% 11.2%;
     --sidebar-foreground: 210 40% 98%;
@@ -81,6 +81,18 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-bold;
+  }
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.sidebar-gradient {
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
 }

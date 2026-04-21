@@ -4,7 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, User as UserIcon } from 'lucide-react';
+import { LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -20,57 +20,61 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
 
   return (
-    <nav className="bg-[#0f172a] text-white p-4 shadow-lg border-b border-white/10 sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 h-16 flex items-center">
+      <div className="container mx-auto px-6 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="h-10 w-10 bg-white rounded-xl p-1 transition-transform group-hover:scale-110 overflow-hidden flex items-center justify-center">
+          <div className="h-9 w-9 bg-slate-900 rounded-lg p-1.5 transition-all group-hover:scale-105 shadow-lg shadow-slate-200">
             <img 
               src="https://pasted-image-2026-04-21T19-18-37-057Z.png" 
               alt="HCMS Logo" 
-              className="h-full w-full object-contain"
+              className="h-full w-full object-contain brightness-0 invert"
             />
           </div>
-          <span className="text-2xl font-black tracking-tighter">HCMS</span>
+          <div className="flex flex-col">
+            <span className="text-lg font-black tracking-tighter text-slate-900 leading-none">HCMS</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hostel Management</span>
+          </div>
         </Link>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           {isAuthenticated ? (
             <>
               <NotificationBell />
+              <div className="h-6 w-[1px] bg-slate-200 mx-2" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-white/10 hover:bg-white/10">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-slate-50 rounded-full transition-all">
+                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
                       <AvatarImage src="" alt={user?.name} />
-                      <AvatarFallback className="bg-[#d9531e] text-white font-bold">
-                        {user?.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="h-4 w-4" />}
+                      <AvatarFallback className="bg-slate-900 text-white text-xs font-bold">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : <UserIcon className="h-3 w-3" />}
                       </AvatarFallback>
                     </Avatar>
+                    <div className="hidden md:flex flex-col items-start text-left">
+                      <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
+                      <span className="text-[10px] font-medium text-slate-500 capitalize">{user?.role}</span>
+                    </div>
+                    <ChevronDown className="h-3 w-3 text-slate-400" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 mt-2 bg-[#1e293b] border-white/10 text-white" align="end">
+                <DropdownMenuContent className="w-56 mt-2 rounded-2xl shadow-2xl border-slate-100" align="end">
                   <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-bold leading-none">{user?.name}</p>
-                      <p className="text-xs leading-none text-white/60">{user?.email}</p>
-                      <div className="pt-2">
-                        <span className="text-[10px] px-2 py-0.5 bg-[#d9531e] rounded-full font-bold uppercase tracking-wider">
-                          {user?.role}
-                        </span>
-                      </div>
+                      <p className="text-sm font-bold text-slate-900">{user?.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <DropdownMenuItem onClick={logout} className="cursor-pointer p-3 focus:bg-red-500/10 focus:text-red-400">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer p-3 text-red-600 focus:text-red-600 focus:bg-red-50 rounded-xl m-1">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    <span className="font-bold">Sign Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <Link to="/auth">
-              <Button className="bg-[#d9531e] hover:bg-[#bf4618] text-white font-bold px-6">
+              <Button className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 rounded-full shadow-lg shadow-slate-200 transition-all hover:-translate-y-0.5">
                 Sign In
               </Button>
             </Link>
