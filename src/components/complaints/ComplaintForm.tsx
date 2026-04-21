@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccess, showError } from '@/utils/toast';
 import { useAuth } from '@/context/AuthContext';
+import { Camera, X, Image as ImageIcon } from 'lucide-react';
 
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
@@ -22,6 +23,8 @@ const formSchema = z.object({
 const ComplaintForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -33,12 +36,21 @@ const ComplaintForm = () => {
     },
   });
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Get existing complaints from localStorage
       const existingComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
       
-      // Create new complaint object
       const newComplaint = {
         _id: Math.random().toString(36).substr(2, 9),
         studentName: user?.name || 'Unknown Student',
@@ -46,6 +58,7 @@ const ComplaintForm = () => {
         description: values.description,
         status: 'pending',
         createdAt: new Date().toISOString(),
+        image: imagePreview, // Store the base64 image
         location: {
           block: values.block,
           floor: values.floor,
@@ -53,13 +66,11 @@ const ComplaintForm = () => {
         }
       };
 
-      // Save back to localStorage
       localStorage.setItem('user_complaints', JSON.stringify([newComplaint, ...existingComplaints]));
       
-      showSuccess("Complaint submitted successfully!");
+      showSuccess("Complaint submitted with photo!");
       form.reset();
-      
-      // Redirect to My Complaints to see the result
+      setImagePreview(null);
       navigate('/student/my-complaints');
     } catch (error) {
       showError("Failed to submit complaint.");
@@ -153,6 +164,34 @@ const ComplaintForm = () => {
             </FormItem>
           )}
         />
+
+        <div className="space-y-2">
+          <FormLabel>Evidence Photo (Optional)</FormLabel>
+          <div className="flex items-center gap-4">
+            {!imagePreview ? (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Camera className="w-8 h-8 mb-2 text-gray-400" />
+                  <p className="text-sm text-gray-500">Click to upload photo</p>
+                </div>
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+              </label>
+            ) : (
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  size="icon" 
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full"
+                  onClick={() => setImagePreview(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
 
         <Button type="submit" className="w-full">Submit Complaint</Button>
       </form>

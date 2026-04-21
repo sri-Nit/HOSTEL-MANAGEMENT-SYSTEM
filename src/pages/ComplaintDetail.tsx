@@ -16,7 +16,8 @@ import {
   CheckCircle2, 
   XCircle, 
   ArrowLeft,
-  MessageSquare
+  MessageSquare,
+  ImageIcon
 } from 'lucide-react';
 
 interface Complaint {
@@ -26,6 +27,7 @@ interface Complaint {
   description: string;
   status: string;
   createdAt: string;
+  image?: string;
   location: {
     block: string;
     floor: string;
@@ -60,13 +62,16 @@ const ComplaintDetail: React.FC = () => {
     });
     localStorage.setItem('user_complaints', JSON.stringify(updated));
     showSuccess(`Complaint ${newStatus} successfully!`);
-    navigate('/guard/complaints');
+    
+    if (user?.role === 'guard') navigate('/guard/complaints');
+    else if (user?.role === 'admin') navigate('/admin/all-complaints');
   };
 
   if (!complaint) return <div className="p-8 text-center">Loading complaint details...</div>;
 
   const isGuard = user?.role === 'guard';
-  const canAction = isGuard && complaint.status === 'pending';
+  const isAdmin = user?.role === 'admin';
+  const canAction = (isGuard || isAdmin) && complaint.status === 'pending';
 
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
@@ -103,6 +108,21 @@ const ComplaintDetail: React.FC = () => {
                       {complaint.description}
                     </p>
                   </div>
+
+                  {complaint.image && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-2">
+                        <ImageIcon className="h-4 w-4" /> Evidence Photo
+                      </h4>
+                      <div className="rounded-lg overflow-hidden border bg-black/5 max-h-[400px] flex justify-center">
+                        <img 
+                          src={complaint.image} 
+                          alt="Issue Evidence" 
+                          className="max-w-full h-auto object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   {complaint.rejectionReason && (
                     <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
