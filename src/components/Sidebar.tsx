@@ -42,13 +42,13 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-64 bg-[#020617] border-r border-white/5 flex flex-col min-h-[calc(100vh-64px)]">
-      <div className="flex-1 py-8 px-4 space-y-8">
+    <div className="w-64 bg-[#0f172a] border-r border-white/10 flex flex-col min-h-[calc(100vh-73px)]">
+      <div className="flex-1 py-6 px-4 space-y-8">
         <div>
-          <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 mb-6">
-            {user?.role === 'guard' ? 'Warder' : user?.role} Navigation
+          <h2 className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">
+            {user?.role === 'guard' ? 'Warder' : user?.role} Menu
           </h2>
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.to;
               return (
@@ -56,15 +56,15 @@ const Sidebar: React.FC = () => {
                   key={link.to}
                   to={link.to}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 group",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group",
                     isActive 
-                      ? "bg-[#d9531e] text-white shadow-xl shadow-[#d9531e]/20" 
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                      ? "bg-[#d9531e] text-white shadow-lg shadow-orange-900/20" 
+                      : "text-white/60 hover:text-white hover:bg-white/5"
                   )}
                 >
                   <link.icon className={cn(
                     "h-5 w-5 transition-transform group-hover:scale-110",
-                    isActive ? "text-white" : "text-slate-500 group-hover:text-white"
+                    isActive ? "text-white" : "text-white/40 group-hover:text-white"
                   )} />
                   {link.label}
                 </Link>
@@ -74,12 +74,12 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
       
-      <div className="p-6 border-t border-white/5">
-        <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">System Status</p>
+      <div className="p-4 border-t border-white/10">
+        <div className="bg-white/5 rounded-2xl p-4">
+          <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1">System Status</p>
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-            <span className="text-xs font-bold text-slate-300">Operational</span>
+            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs font-bold text-white/80">All Systems Operational</span>
           </div>
         </div>
       </div>
