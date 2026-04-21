@@ -6,5 +6,7 @@ export interface UserData {
   hostelBlock?: string;
   roomNumber?: string;
   assignedCategories?: string[];
+  securityQuestion?: string;
+  securityAnswer?: string;
   token: string;
 }

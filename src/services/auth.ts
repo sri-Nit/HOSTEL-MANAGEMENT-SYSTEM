@@ -16,6 +16,8 @@ const initDefaultAdmin = () => {
       email: 'admin@hcms.com',
       password: 'admin',
       role: 'admin',
+      securityQuestion: 'What is your favorite color?',
+      securityAnswer: 'blue',
       token: 'mock-admin-token'
     };
     saveMockUsers([defaultAdmin]);
@@ -53,22 +55,26 @@ export const login = async (credentials: any) => {
   return userData;
 };
 
-export const getAllUsers = async () => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return getMockUsers().map((u: any) => {
-    const { password, ...userWithoutPassword } = u;
-    return userWithoutPassword;
-  });
-};
-
-export const updateUserRole = async (userId: string, newRole: 'student' | 'guard' | 'admin') => {
+export const getSecurityQuestion = async (email: string) => {
   await new Promise(resolve => setTimeout(resolve, 500));
   const users = getMockUsers();
-  const userIndex = users.findIndex((u: any) => u._id === userId);
-  if (userIndex === -1) throw new Error('User not found');
-  users[userIndex].role = newRole;
+  const user = users.find((u: any) => u.email === email);
+  if (!user) throw new Error('User not found');
+  return user.securityQuestion;
+};
+
+export const resetPassword = async (email: string, answer: string, newPassword: string) => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  const users = getMockUsers();
+  const userIndex = users.findIndex((u: any) => u.email === email && u.securityAnswer.toLowerCase() === answer.toLowerCase());
+  
+  if (userIndex === -1) {
+    throw new Error('Incorrect answer to security question');
+  }
+
+  users[userIndex].password = newPassword;
   saveMockUsers(users);
-  return users[userIndex];
+  return true;
 };
 
 export const logout = () => {
