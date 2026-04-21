@@ -58,7 +58,7 @@ const Auth: React.FC = () => {
       } else if (mode === 'login') {
         const userData = await login({ email, password });
         authContextLogin(userData);
-        showSuccess('Login successful!');
+        // Removed the success toast here
         navigate('/');
       }
     } catch (error: any) {

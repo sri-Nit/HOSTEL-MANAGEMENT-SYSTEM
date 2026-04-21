@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setIsAuthenticated(false);
     socket.disconnect();
-    showSuccess("Logged out successfully!");
+    // Removed the success toast here
     navigate('/auth');
   };
 
