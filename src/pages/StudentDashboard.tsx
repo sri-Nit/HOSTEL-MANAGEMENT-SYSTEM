@@ -4,9 +4,10 @@ import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListChecks, UserCircle, HelpCircle, Clock, ArrowRight } from 'lucide-react';
+import { PlusCircle, ListChecks, UserCircle, HelpCircle, Clock, ArrowRight, FileText } from 'lucide-react';
 import FeedbackForm from '@/components/dashboard/FeedbackForm';
 import { Badge } from '@/components/ui/badge';
+import BulletinBoard from '@/components/bulletin/BulletinBoard';
 
 interface Complaint {
   _id: string;
@@ -81,6 +82,8 @@ const StudentDashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
+              <BulletinBoard />
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Link to="/student/submit-complaint" className="group">
                   <Button className="w-full h-32 text-xl font-black flex flex-col gap-3 bg-[#0f172a] hover:bg-[#1e293b] rounded-3xl shadow-2xl shadow-slate-900/20 transition-all duration-300 group-hover:-translate-y-1">

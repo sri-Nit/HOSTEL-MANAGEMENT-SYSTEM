@@ -10,6 +10,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import AdminBulletinForm from '@/components/bulletin/AdminBulletinForm';
 
 interface Complaint {
   _id: string;
@@ -83,35 +84,39 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-primary" />
-                  Recent System Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentComplaints.length === 0 ? (
-                    <p className="text-center py-8 text-muted-foreground">No complaints recorded in the system yet.</p>
-                  ) : (
-                    recentComplaints.map((complaint) => (
-                      <div key={complaint._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-sm">{complaint.category}</span>
-                          <span className="text-xs text-muted-foreground">
-                            ID: #{complaint._id.slice(-6)} • {new Date(complaint.createdAt).toLocaleDateString()}
-                          </span>
+            <div className="lg:col-span-2 space-y-6">
+              <AdminBulletinForm />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-primary" />
+                    Recent System Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentComplaints.length === 0 ? (
+                      <p className="text-center py-8 text-muted-foreground">No complaints recorded in the system yet.</p>
+                    ) : (
+                      recentComplaints.map((complaint) => (
+                        <div key={complaint._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-sm">{complaint.category}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ID: #{complaint._id.slice(-6)} • {new Date(complaint.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <Badge variant={complaint.status === 'escalated' ? 'destructive' : 'secondary'} className="capitalize">
+                            {complaint.status.replace('_', ' ')}
+                          </Badge>
                         </div>
-                        <Badge variant={complaint.status === 'escalated' ? 'destructive' : 'secondary'} className="capitalize">
-                          {complaint.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
             <div className="space-y-6">
               <Card>
