@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-            {user?.role ? `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} Panel` : 'Navigation'}
+            {user?.role ? `${user.role === 'guard' ? 'Warder' : user.role.charAt(0).toUpperCase() + user.role.slice(1)} Panel` : 'Navigation'}
           </h2>
           <div className="space-y-1">
             {navLinks.map((link) => (

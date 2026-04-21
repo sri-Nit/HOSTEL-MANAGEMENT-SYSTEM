@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
 
-const WardenDashboard: React.FC = () => {
+const WarderDashboard: React.FC = () => {
   const { user } = useAuth();
 
   return (
@@ -10,7 +10,7 @@ const WardenDashboard: React.FC = () => {
       <Sidebar />
       <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Warden Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Warder Dashboard</h1>
           <p className="text-lg text-gray-700 dark:text-gray-300">
             Welcome, {user?.name}! Here you can oversee and manage complaints.
           </p>
@@ -20,4 +20,4 @@ const WardenDashboard: React.FC = () => {
   );
 };
 
-export default WardenDashboard;
+export default WarderDashboard;

@@ -43,7 +43,7 @@ const GuardDashboard: React.FC = () => {
       <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto max-w-5xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Warden Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Warder Dashboard</h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
               Welcome, {user?.name}. You have {stats.pending} complaints awaiting verification.
             </p>

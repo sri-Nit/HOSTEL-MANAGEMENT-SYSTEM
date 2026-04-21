@@ -40,7 +40,7 @@ const MessageInterface: React.FC<MessageInterfaceProps> = ({ recipient, setRecip
                 <SelectValue placeholder="Select recipient" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="warden">Hostel Warden</SelectItem>
+                <SelectItem value="warder">Hostel Warder</SelectItem>
                 <SelectItem value="security_guard">Security Guard</SelectItem>
                 <SelectItem value="maintenance_head">Maintenance Head</SelectItem>
               </SelectContent>

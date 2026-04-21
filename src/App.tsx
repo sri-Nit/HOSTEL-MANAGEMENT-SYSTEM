@@ -19,7 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ComplaintDetail from "./pages/ComplaintDetail";
 import AdminEscalations from "./pages/AdminEscalations";
 import AdminReports from "./pages/AdminReports";
-import ManageComplaintsWarden from "./pages/ManageComplaintsWarden";
+import ManageComplaintsWarder from "./pages/ManageComplaintsWarder";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AdminAllComplaints from "./pages/AdminAllComplaints";
 
@@ -51,7 +51,7 @@ const App = () => (
 
             <Route element={<ProtectedRoute allowedRoles={['guard']} />}>
               <Route path="/guard/dashboard" element={<GuardDashboard />} />
-              <Route path="/guard/complaints" element={<ManageComplaintsWarden />} />
+              <Route path="/guard/complaints" element={<ManageComplaintsWarder />} />
               <Route path="/guard/complaint/:id" element={<ComplaintDetail />} />
             </Route>
 

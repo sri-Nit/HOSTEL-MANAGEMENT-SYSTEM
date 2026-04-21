@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Phone, Mail, Clock, ShieldAlert } from 'lucide-react';
 
 const NeedHelp: React.FC = () => {
-  const [selectedRecipient, setSelectedRecipient] = useState('warden');
+  const [selectedRecipient, setSelectedRecipient] = useState('warder');
 
   const contacts = [
-    { role: 'Warden', name: 'Mr. Rajesh Kumar', phone: '+91 98765 43210', email: 'warden.blocka@hcms.edu' },
+    { role: 'Warder', name: 'Mr. Rajesh Kumar', phone: '+91 98765 43210', email: 'warder.blocka@hcms.edu' },
     { role: 'Security Desk', name: 'Main Gate', phone: '+91 98765 43211', email: 'security@hcms.edu' },
     { role: 'Medical Room', name: 'Emergency', phone: '+91 98765 43212', email: 'medical@hcms.edu' },
   ];

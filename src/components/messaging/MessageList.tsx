@@ -15,15 +15,15 @@ interface Message {
 const mockMessages: Message[] = [
   {
     id: '1',
-    recipientId: 'warden',
-    sender: 'Warden',
+    recipientId: 'warder',
+    sender: 'Warder',
     content: 'Hello! I have received your complaint regarding the plumbing. A plumber will be assigned shortly.',
     timestamp: '2 hours ago',
     isIncoming: true,
   },
   {
     id: '2',
-    recipientId: 'warden',
+    recipientId: 'warder',
     sender: 'You',
     content: 'Thank you, sir. Please ensure it is fixed by evening.',
     timestamp: '1 hour ago',

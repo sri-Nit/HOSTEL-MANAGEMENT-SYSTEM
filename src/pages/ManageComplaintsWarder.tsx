@@ -21,7 +21,7 @@ interface Complaint {
   };
 }
 
-const ManageComplaintsWarden: React.FC = () => {
+const ManageComplaintsWarder: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -125,4 +125,4 @@ const ManageComplaintsWarden: React.FC = () => {
   );
 };
 
-export default ManageComplaintsWarden;
+export default ManageComplaintsWarder;
