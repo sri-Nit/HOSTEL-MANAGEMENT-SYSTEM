@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { AlertCircle, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle, ArrowRight } from 'lucide-react';
 
 interface Complaint {
   _id: string;
@@ -116,7 +114,6 @@ const GuardDashboard: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

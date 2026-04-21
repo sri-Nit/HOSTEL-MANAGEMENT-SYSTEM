@@ -1,6 +1,5 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import ComplaintForm from '@/components/complaints/ComplaintForm';
 
 const SubmitComplaint: React.FC = () => {
@@ -15,7 +14,6 @@ const SubmitComplaint: React.FC = () => {
           </p>
           <ComplaintForm />
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

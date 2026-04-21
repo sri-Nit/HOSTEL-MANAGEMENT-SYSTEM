@@ -1,6 +1,5 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 
 const AssignedComplaintsServicePersonnel: React.FC = () => {
   return (
@@ -12,9 +11,7 @@ const AssignedComplaintsServicePersonnel: React.FC = () => {
           <p className="text-lg text-gray-700 dark:text-gray-300">
             Service personnel can view and update their assigned complaints here.
           </p>
-          {/* List of assigned complaints for service personnel will go here */}
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

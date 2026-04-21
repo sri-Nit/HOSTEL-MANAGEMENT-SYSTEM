@@ -1,10 +1,9 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User as UserIcon, Mail, Building, DoorOpen, ShieldCheck } from 'lucide-react';
+import { Mail, Building, DoorOpen, ShieldCheck } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -78,7 +77,6 @@ const Profile: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

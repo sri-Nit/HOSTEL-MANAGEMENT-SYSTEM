@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, Filter, ArrowUpDown, CheckCircle, XCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess } from '@/utils/toast';
 import {
   Dialog,
   DialogContent,
@@ -50,7 +49,6 @@ const AdminAllComplaints: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
   
-  // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -284,7 +282,6 @@ const AdminAllComplaints: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

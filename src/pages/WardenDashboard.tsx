@@ -1,7 +1,6 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 
 const WardenDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -15,9 +14,7 @@ const WardenDashboard: React.FC = () => {
           <p className="text-lg text-gray-700 dark:text-gray-300">
             Welcome, {user?.name}! Here you can oversee and manage complaints.
           </p>
-          {/* Warden-specific content will go here */}
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

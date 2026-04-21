@@ -1,6 +1,5 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import ComplaintList from '@/components/complaints/ComplaintList';
 
 const MyComplaints: React.FC = () => {
@@ -12,7 +11,6 @@ const MyComplaints: React.FC = () => {
           <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">My Complaints</h1>
           <ComplaintList />
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

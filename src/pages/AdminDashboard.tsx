@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { useAuth } from '@/context/AuthContext';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ClipboardList, 
@@ -22,7 +20,6 @@ interface Complaint {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -33,8 +30,6 @@ const AdminDashboard: React.FC = () => {
   const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([]);
 
   useEffect(() => {
-    // In a real app, this would be an API call. 
-    // Here we pull from the mock localStorage database.
     const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
     
     const newStats = {
@@ -69,7 +64,6 @@ const AdminDashboard: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             {statCards.map((card) => (
               <Card key={card.title} className="border-none shadow-sm">
@@ -89,7 +83,6 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Activity */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -120,7 +113,6 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* System Health / Quick Links */}
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -155,7 +147,6 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

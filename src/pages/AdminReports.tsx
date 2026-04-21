@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   BarChart, 
@@ -17,7 +16,7 @@ import {
   Line,
   Legend
 } from 'recharts';
-import { BarChart3, PieChart as PieChartIcon, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface Complaint {
   _id: string;
@@ -49,21 +48,18 @@ const AdminReports: React.FC = () => {
   useEffect(() => {
     const allComplaints: Complaint[] = JSON.parse(localStorage.getItem('user_complaints') || '[]');
     
-    // 1. Category Distribution
     const categories: Record<string, number> = {};
     allComplaints.forEach(c => {
       categories[c.category] = (categories[c.category] || 0) + 1;
     });
     setCategoryData(Object.entries(categories).map(([name, value]) => ({ name, value })));
 
-    // 2. Status Distribution
     const statuses: Record<string, number> = {};
     allComplaints.forEach(c => {
       statuses[c.status] = (statuses[c.status] || 0) + 1;
     });
     setStatusData(Object.entries(statuses).map(([name, value]) => ({ name, value })));
 
-    // 3. Resolution Stats
     const resolved = allComplaints.filter(c => c.status === 'resolved');
     setResolutionStats(prev => ({
       ...prev,
@@ -86,7 +82,6 @@ const AdminReports: React.FC = () => {
             </p>
           </div>
 
-          {/* Top Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -125,7 +120,6 @@ const AdminReports: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Category Chart */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Complaints by Category</CardTitle>
@@ -146,7 +140,6 @@ const AdminReports: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Status Chart */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Status Distribution</CardTitle>
@@ -175,7 +168,6 @@ const AdminReports: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Trend Chart (Mocked for visual) */}
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg">Weekly Complaint Volume</CardTitle>
@@ -205,7 +197,6 @@ const AdminReports: React.FC = () => {
             </Card>
           </div>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

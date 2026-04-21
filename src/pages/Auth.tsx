@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccess, showError } from '@/utils/toast';
 import { Loader2 } from 'lucide-react';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 
 const Auth: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -165,7 +164,6 @@ const Auth: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-      <MadeWithDyad />
     </div>
   );
 };

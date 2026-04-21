@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ListChecks, UserCircle, HelpCircle, Clock } from 'lucide-react';
@@ -157,7 +156,6 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );

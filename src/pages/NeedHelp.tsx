@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { MadeWithDyad } from '@/components/made-with-dyad';
 import MessageInterface from '@/components/messaging/MessageInterface';
 import MessageList from '@/components/messaging/MessageList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +25,6 @@ const NeedHelp: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Messaging */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <MessageInterface recipient={selectedRecipient} setRecipient={setSelectedRecipient} />
@@ -59,7 +57,6 @@ const NeedHelp: React.FC = () => {
               </Card>
             </div>
 
-            {/* Right Column: Contacts */}
             <div className="lg:col-span-4 space-y-6">
               <Card className="border-red-200 bg-red-50 dark:bg-red-900/10">
                 <CardHeader>
@@ -88,7 +85,6 @@ const NeedHelp: React.FC = () => {
             </div>
           </div>
         </div>
-        <MadeWithDyad />
       </main>
     </div>
   );
