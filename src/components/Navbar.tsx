@@ -1,8 +1,10 @@
+"use client";
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, User as UserIcon, Building2 } from 'lucide-react';
+import { LogOut, User as UserIcon } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -20,9 +22,13 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-[#0f172a] text-white p-4 shadow-lg border-b border-white/10 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="p-1.5 bg-[#d9531e] rounded-lg transition-transform group-hover:scale-110">
-            <Building2 className="h-6 w-6 text-white" />
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="h-10 w-10 bg-white rounded-xl p-1 transition-transform group-hover:scale-110 overflow-hidden flex items-center justify-center">
+            <img 
+              src="https://pasted-image-2026-04-21T19-18-37-057Z.png" 
+              alt="HCMS Logo" 
+              className="h-full w-full object-contain"
+            />
           </div>
           <span className="text-2xl font-black tracking-tighter">HCMS</span>
         </Link>
