@@ -19,43 +19,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
+  const fetchUserProfile = async (sessionUser: any, token: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', sessionUser.id)
+        .single();
+
+      if (error) throw error;
+
+      const userData: UserData = {
+        _id: sessionUser.id,
+        name: profile.name || sessionUser.user_metadata.name,
+        email: sessionUser.email || '',
+        role: profile.role as any, // Get role from DB instead of metadata
+        hostelBlock: profile.hostel_block,
+        roomNumber: profile.room_number,
+        token: token
+      };
+      
+      setUser(userData);
+      setIsAuthenticated(true);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      // Fallback to metadata if DB fetch fails
+      const userData: UserData = {
+        _id: sessionUser.id,
+        name: sessionUser.user_metadata.name,
+        email: sessionUser.email || '',
+        role: sessionUser.user_metadata.role,
+        hostelBlock: sessionUser.user_metadata.hostelBlock,
+        roomNumber: sessionUser.user_metadata.roomNumber,
+        token: token
+      };
+      setUser(userData);
+      setIsAuthenticated(true);
+    }
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (session?.user) {
-        const userData: UserData = {
-          _id: session.user.id,
-          name: session.user.user_metadata.name,
-          email: session.user.email || '',
-          role: session.user.user_metadata.role,
-          hostelBlock: session.user.user_metadata.hostelBlock,
-          roomNumber: session.user.user_metadata.roomNumber,
-          token: session.access_token
-        };
-        setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
+        await fetchUserProfile(session.user, session.access_token);
       }
       setIsLoading(false);
     };
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const userData: UserData = {
-          _id: session.user.id,
-          name: session.user.user_metadata.name,
-          email: session.user.email || '',
-          role: session.user.user_metadata.role,
-          hostelBlock: session.user.user_metadata.hostelBlock,
-          roomNumber: session.user.user_metadata.roomNumber,
-          token: session.access_token
-        };
-        setUser(userData);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(userData));
+        await fetchUserProfile(session.user, session.access_token);
       } else {
         setUser(null);
         setIsAuthenticated(false);
