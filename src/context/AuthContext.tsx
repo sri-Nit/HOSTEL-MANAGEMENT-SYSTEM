@@ -1,9 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, logout as authLogout } from '@/services/auth';
+import { supabase } from '@/lib/supabase';
 import { UserData } from '@/services/auth.types';
-import { socket } from '@/services/socket';
-import { showSuccess } from '@/utils/toast';
 
 interface AuthContextType {
   user: UserData | null;
@@ -22,45 +20,63 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setIsAuthenticated(true);
-      try {
-        socket.connect();
-        socket.emit('joinRoom', currentUser._id);
-      } catch (e) {
-        console.warn("Socket connection failed, continuing in mock mode.");
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const userData: UserData = {
+          _id: session.user.id,
+          name: session.user.user_metadata.name,
+          email: session.user.email || '',
+          role: session.user.user_metadata.role,
+          hostelBlock: session.user.user_metadata.hostelBlock,
+          roomNumber: session.user.user_metadata.roomNumber,
+          token: session.access_token
+        };
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userData));
       }
-    }
-    setIsLoading(false);
-
-    const handleNewNotification = (notification: any) => {
-      showSuccess(`New Notification: ${notification.message}`);
+      setIsLoading(false);
     };
 
-    socket.on('newNotification', handleNewNotification);
+    checkUser();
 
-    return () => {
-      socket.off('newNotification', handleNewNotification);
-      socket.disconnect();
-    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const userData: UserData = {
+          _id: session.user.id,
+          name: session.user.user_metadata.name,
+          email: session.user.email || '',
+          role: session.user.user_metadata.role,
+          hostelBlock: session.user.user_metadata.hostelBlock,
+          roomNumber: session.user.user_metadata.roomNumber,
+          token: session.access_token
+        };
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('user');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = (userData: UserData) => {
     setUser(userData);
     setIsAuthenticated(true);
     localStorage.setItem('user', JSON.stringify(userData));
-    socket.connect();
-    socket.emit('joinRoom', userData._id);
   };
 
-  const handleLogout = () => {
-    authLogout();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setIsAuthenticated(false);
-    socket.disconnect();
-    // Removed the success toast here
+    localStorage.removeItem('user');
     navigate('/auth');
   };
 
