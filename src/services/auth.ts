@@ -1,8 +1,8 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { UserData } from './auth.types';
 
 export const register = async (userData: any) => {
-  const { email, password, name, role, hostelBlock, roomNumber, securityQuestion, securityAnswer } = userData;
+  const { email, password, name, role, hostelBlock, roomNumber } = userData;
   
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -13,8 +13,6 @@ export const register = async (userData: any) => {
         role,
         hostelBlock,
         roomNumber,
-        securityQuestion,
-        securityAnswer
       }
     }
   });
@@ -50,10 +48,4 @@ export const logout = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
   localStorage.removeItem('user');
-};
-
-export const getCurrentUser = (): UserData | null => {
-  const userStr = localStorage.getItem('user');
-  if (userStr) return JSON.parse(userStr);
-  return null;
 };
