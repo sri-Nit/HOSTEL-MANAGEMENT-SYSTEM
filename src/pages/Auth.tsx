@@ -22,7 +22,7 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'guard'>('student');
+  const [role, setRole] = useState<'student' | 'guard' | 'admin'>('student');
   const [hostelBlock, setHostelBlock] = useState('');
   const [roomNumber, setRoomNumber] = useState('');
   const [securityQuestion, setSecurityQuestion] = useState('');
@@ -46,7 +46,7 @@ const Auth: React.FC = () => {
           registerData.roomNumber = roomNumber;
         }
         await register(registerData);
-        showSuccess('Registration successful! Please check your email for verification.');
+        showSuccess('Registration successful! You can now log in.');
         setMode('login');
       } else if (mode === 'login') {
         const userData = await login({ email, password });
@@ -141,6 +141,7 @@ const Auth: React.FC = () => {
                       <SelectContent>
                         <SelectItem value="student">Student</SelectItem>
                         <SelectItem value="guard">Warder</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
