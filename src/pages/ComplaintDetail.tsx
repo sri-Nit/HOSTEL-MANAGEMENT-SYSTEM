@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   MapPin, 
   Calendar, 
@@ -16,23 +17,23 @@ import {
   XCircle, 
   ArrowLeft,
   MessageSquare,
-  ImageIcon
+  ImageIcon,
+  Loader2
 } from 'lucide-react';
 
 interface Complaint {
-  _id: string;
-  studentName: string;
+  id: string;
   category: string;
   description: string;
   status: string;
-  createdAt: string;
-  image?: string;
+  created_at: string;
+  image_url?: string;
   location: {
     block: string;
     floor: string;
     room: string;
   };
-  rejectionReason?: string;
+  profiles: { name: string } | null;
 }
 
 const ComplaintDetail: React.FC = () => {
@@ -40,33 +41,49 @@ const ComplaintDetail: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [complaint, setComplaint] = useState<Complaint | null>(null);
+  const [loading, setLoading] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
 
-  useEffect(() => {
-    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    const found = allComplaints.find((c: Complaint) => c._id === id);
-    if (found) {
-      setComplaint(found);
-    }
-  }, [id]);
+  const fetchComplaint = async () => {
+    if (!id) return;
+    const { data, error } = await supabase
+      .from('complaints')
+      .select('*, profiles(name)')
+      .eq('id', id)
+      .single();
 
-  const updateStatus = (newStatus: string, reason?: string) => {
-    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    const updated = allComplaints.map((c: Complaint) => {
-      if (c._id === id) {
-        return { ...c, status: newStatus, rejectionReason: reason || c.rejectionReason };
-      }
-      return c;
-    });
-    localStorage.setItem('user_complaints', JSON.stringify(updated));
-    showSuccess(`Complaint ${newStatus} successfully!`);
-    
-    if (user?.role === 'guard') navigate('/guard/complaints');
-    else if (user?.role === 'admin') navigate('/admin/all-complaints');
+    if (!error && data) {
+      setComplaint(data as any);
+    } else {
+      showError("Complaint not found.");
+      navigate(-1);
+    }
+    setLoading(false);
   };
 
-  if (!complaint) return <div className="p-8 text-center">Loading complaint details...</div>;
+  useEffect(() => {
+    fetchComplaint();
+  }, [id]);
+
+  const updateStatus = async (newStatus: string) => {
+    if (!id) return;
+    const { error } = await supabase
+      .from('complaints')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      showError("Failed to update status.");
+    } else {
+      showSuccess(`Complaint ${newStatus} successfully!`);
+      fetchComplaint();
+      setShowRejectInput(false);
+    }
+  };
+
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin h-8 w-8" /></div>;
+  if (!complaint) return null;
 
   const isGuard = user?.role === 'guard';
   const isAdmin = user?.role === 'admin';
@@ -93,9 +110,9 @@ const ComplaintDetail: React.FC = () => {
                     <div>
                       <Badge className="mb-2">{complaint.category}</Badge>
                       <CardTitle className="text-2xl">Complaint Details</CardTitle>
-                      <CardDescription>ID: #{complaint._id.slice(-6)}</CardDescription>
+                      <CardDescription>ID: #{complaint.id.slice(-6)}</CardDescription>
                     </div>
-                    <Badge variant={complaint.status === 'pending' ? 'outline' : 'secondary'} className="capitalize">
+                    <Badge variant="secondary" className="capitalize">
                       {complaint.status.replace('_', ' ')}
                     </Badge>
                   </div>
@@ -108,25 +125,18 @@ const ComplaintDetail: React.FC = () => {
                     </p>
                   </div>
 
-                  {complaint.image && (
+                  {complaint.image_url && (
                     <div>
                       <h4 className="text-sm font-semibold text-muted-foreground uppercase mb-2 flex items-center gap-2">
                         <ImageIcon className="h-4 w-4" /> Evidence Photo
                       </h4>
                       <div className="rounded-lg overflow-hidden border bg-black/5 max-h-[400px] flex justify-center">
                         <img 
-                          src={complaint.image} 
+                          src={complaint.image_url} 
                           alt="Issue Evidence" 
                           className="max-w-full h-auto object-contain"
                         />
                       </div>
-                    </div>
-                  )}
-
-                  {complaint.rejectionReason && (
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
-                      <h4 className="text-sm font-semibold text-red-700 mb-1">Rejection Reason</h4>
-                      <p className="text-sm text-red-600">{complaint.rejectionReason}</p>
                     </div>
                   )}
 
@@ -139,7 +149,7 @@ const ComplaintDetail: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Submitted By</p>
-                        <p className="font-medium text-sm">{complaint.studentName}</p>
+                        <p className="font-medium text-sm">{complaint.profiles?.name || 'Unknown'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -148,7 +158,7 @@ const ComplaintDetail: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Date Submitted</p>
-                        <p className="font-medium text-sm">{new Date(complaint.createdAt).toLocaleDateString()}</p>
+                        <p className="font-medium text-sm">{new Date(complaint.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
@@ -159,7 +169,7 @@ const ComplaintDetail: React.FC = () => {
                 <Card className="border-primary/20 bg-primary/5">
                   <CardHeader>
                     <CardTitle className="text-lg">Verification Actions</CardTitle>
-                    <CardDescription>Approve this complaint to assign it to a worker or reject it with a reason.</CardDescription>
+                    <CardDescription>Approve this complaint to assign it for resolution or reject it.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {!showRejectInput ? (
@@ -168,7 +178,7 @@ const ComplaintDetail: React.FC = () => {
                           className="flex-1 bg-green-600 hover:bg-green-700"
                           onClick={() => updateStatus('approved')}
                         >
-                          <CheckCircle2 className="mr-2 h-4 w-4" /> Approve & Assign
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Approve
                         </Button>
                         <Button 
                           variant="outline" 
@@ -190,7 +200,7 @@ const ComplaintDetail: React.FC = () => {
                             variant="destructive" 
                             className="flex-1"
                             disabled={!rejectionReason}
-                            onClick={() => updateStatus('rejected', rejectionReason)}
+                            onClick={() => updateStatus('rejected')}
                           >
                             Confirm Rejection
                           </Button>

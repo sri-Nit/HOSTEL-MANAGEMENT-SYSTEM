@@ -4,17 +4,18 @@ import Sidebar from '@/components/Sidebar';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListChecks, UserCircle, HelpCircle, Clock, ArrowRight, FileText } from 'lucide-react';
+import { PlusCircle, ListChecks, UserCircle, HelpCircle, Clock, ArrowRight, FileText, Loader2 } from 'lucide-react';
 import FeedbackForm from '@/components/dashboard/FeedbackForm';
 import { Badge } from '@/components/ui/badge';
 import BulletinBoard from '@/components/bulletin/BulletinBoard';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Complaint {
-  _id: string;
+  id: string;
   category: string;
   description: string;
   status: string;
-  createdAt: string;
+  created_at: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -29,6 +30,7 @@ const statusColors: Record<string, string> = {
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState([
     { label: 'Total Complaints', value: '0', color: 'text-white', bg: 'bg-[#1e293b]' },
     { label: 'Active Issues', value: '0', color: 'text-[#d9531e]', bg: 'bg-[#d9531e]/10' },
@@ -36,19 +38,32 @@ const StudentDashboard: React.FC = () => {
   ]);
 
   useEffect(() => {
-    const savedComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    setComplaints(savedComplaints);
+    const fetchDashboardData = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .eq('user_id', user._id)
+        .order('created_at', { ascending: false });
 
-    const total = savedComplaints.length;
-    const inProgress = savedComplaints.filter((c: Complaint) => c.status === 'in_progress' || c.status === 'pending').length;
-    const resolved = savedComplaints.filter((c: Complaint) => c.status === 'resolved').length;
+      if (!error && data) {
+        setComplaints(data);
+        const total = data.length;
+        const active = data.filter(c => ['pending', 'approved', 'in_progress'].includes(c.status)).length;
+        const resolved = data.filter(c => c.status === 'resolved').length;
 
-    setStats([
-      { label: 'Total Complaints', value: total.toString(), color: 'text-white', bg: 'bg-[#1e293b]' },
-      { label: 'Active Issues', value: inProgress.toString(), color: 'text-[#d9531e]', bg: 'bg-[#d9531e]/10' },
-      { label: 'Resolved', value: resolved.toString(), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-    ]);
-  }, []);
+        setStats([
+          { label: 'Total Complaints', value: total.toString(), color: 'text-white', bg: 'bg-[#1e293b]' },
+          { label: 'Active Issues', value: active.toString(), color: 'text-[#d9531e]', bg: 'bg-[#d9531e]/10' },
+          { label: 'Resolved', value: resolved.toString(), color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+        ]);
+      }
+      setLoading(false);
+    };
+
+    fetchDashboardData();
+  }, [user]);
 
   const recentComplaints = complaints.slice(0, 3);
 
@@ -110,14 +125,16 @@ const StudentDashboard: React.FC = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-slate-50">
-                    {recentComplaints.length === 0 ? (
+                    {loading ? (
+                      <div className="p-12 text-center"><Loader2 className="animate-spin mx-auto" /></div>
+                    ) : recentComplaints.length === 0 ? (
                       <div className="p-12 text-center">
                         <Clock className="h-12 w-12 text-slate-200 mx-auto mb-4" />
                         <p className="text-slate-400 font-bold">No recent complaints found.</p>
                       </div>
                     ) : (
                       recentComplaints.map((complaint) => (
-                        <div key={complaint._id} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors">
+                        <div key={complaint.id} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors">
                           <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                               <FileText size={24} />
@@ -126,7 +143,7 @@ const StudentDashboard: React.FC = () => {
                               <p className="font-black text-[#0f172a]">{complaint.category}</p>
                               <p className="text-xs text-slate-400 font-bold flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {new Date(complaint.createdAt).toLocaleDateString()}
+                                {new Date(complaint.created_at).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
