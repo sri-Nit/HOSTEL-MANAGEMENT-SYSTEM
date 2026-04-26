@@ -49,3 +49,7 @@ export const logout = async () => {
   if (error) throw error;
   localStorage.removeItem('user');
 };
+
+export const clearAllData = () => {
+  localStorage.clear();
+};
