@@ -7,7 +7,7 @@ const saveMockUsers = (users: any[]) => {
 };
 
 // Initialize with a default admin if none exists
-const initDefaultAdmin = () => {
+export const initDefaultAdmin = () => {
   const users = getMockUsers();
   if (users.length === 0) {
     const defaultAdmin = {
@@ -46,9 +46,11 @@ export const login = async (credentials: any) => {
   await new Promise(resolve => setTimeout(resolve, 800));
   const users = getMockUsers();
   const user = users.find((u: any) => u.email === credentials.email && u.password === credentials.password);
+  
   if (!user) {
     throw { response: { data: { message: 'Invalid email or password' } } };
   }
+  
   const userData = { ...user };
   delete userData.password;
   localStorage.setItem('user', JSON.stringify(userData));
@@ -85,4 +87,12 @@ export const getCurrentUser = (): UserData | null => {
   const userStr = localStorage.getItem('user');
   if (userStr) return JSON.parse(userStr);
   return null;
+};
+
+export const clearAllData = () => {
+  localStorage.removeItem('mock_users');
+  localStorage.removeItem('user_complaints');
+  localStorage.removeItem('bulletin_messages');
+  localStorage.removeItem('user');
+  initDefaultAdmin();
 };

@@ -7,10 +7,14 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   ShieldAlert,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import AdminBulletinForm from '@/components/bulletin/AdminBulletinForm';
+import { clearAllData } from '@/services/auth';
+import { showSuccess } from '@/utils/toast';
 
 interface Complaint {
   _id: string;
@@ -30,7 +34,7 @@ const AdminDashboard: React.FC = () => {
   });
   const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([]);
 
-  useEffect(() => {
+  const loadData = () => {
     const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
     
     const newStats = {
@@ -43,7 +47,20 @@ const AdminDashboard: React.FC = () => {
 
     setStats(newStats);
     setRecentComplaints(allComplaints.slice(0, 5));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
+
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to clear all system data? This will reset users and complaints.")) {
+      clearAllData();
+      showSuccess("System data cleared successfully.");
+      loadData();
+      window.location.reload();
+    }
+  };
 
   const statCards = [
     { title: 'Total Complaints', value: stats.total, icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -58,11 +75,16 @@ const AdminDashboard: React.FC = () => {
       <Sidebar />
       <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto max-w-6xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Control Panel</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              System-wide overview of all hostel maintenance and security issues.
-            </p>
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Control Panel</h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                System-wide overview of all hostel maintenance and security issues.
+              </p>
+            </div>
+            <Button variant="outline" onClick={handleReset} className="text-red-600 border-red-200 hover:bg-red-50">
+              <RefreshCw className="mr-2 h-4 w-4" /> Reset System Data
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
@@ -126,7 +148,7 @@ const AdminDashboard: React.FC = () => {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Database Connection</span>
-                    <Badge className="bg-green-500">Healthy</Badge>
+                    <Badge className="bg-green-500">Healthy (Mock)</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Notification Service</span>
