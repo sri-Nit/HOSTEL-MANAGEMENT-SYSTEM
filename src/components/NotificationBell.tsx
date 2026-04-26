@@ -4,18 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { socket } from '@/services/socket';
+import { supabase } from '@/integrations/supabase/client';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface Notification {
-  _id: string;
+  id: string;
   message: string;
   read: boolean;
-  createdAt: string;
+  created_at: string;
   type: string;
-  complaintId?: string;
+  complaint_id?: string;
 }
 
 const NotificationBell: React.FC = () => {
@@ -27,50 +26,85 @@ const NotificationBell: React.FC = () => {
   const fetchNotifications = async () => {
     if (!user) return;
     try {
-      const response = await api.get(`/notifications/user/${user._id}`);
-      setNotifications(response.data);
-      setUnreadCount(response.data.filter((n: Notification) => !n.read).length);
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user._id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      
+      setNotifications(data || []);
+      setUnreadCount(data?.filter((n: Notification) => !n.read).length || 0);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
-      showError('Failed to load notifications.');
     }
   };
 
   useEffect(() => {
     fetchNotifications();
 
-    socket.on('newNotification', (newNotification: Notification) => {
-      setNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-      showSuccess(`New Notification: ${newNotification.message}`);
-    });
+    if (!user) return;
+
+    // Subscribe to new notifications in real-time
+    const channel = supabase
+      .channel('public:notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user._id}`,
+        },
+        (payload) => {
+          const newNotif = payload.new as Notification;
+          setNotifications((prev) => [newNotif, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+          showSuccess(`New Notification: ${newNotif.message}`);
+        }
+      )
+      .subscribe();
 
     return () => {
-      socket.off('newNotification');
+      supabase.removeChannel(channel);
     };
   }, [user]);
 
   const markAsRead = async (id: string) => {
     try {
-      await api.put(`/notifications/${id}/read`);
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id);
+
+      if (error) throw error;
+
       setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
       showError('Failed to mark notification as read.');
     }
   };
 
   const markAllAsRead = async () => {
+    if (!user) return;
     try {
-      await api.put(`/notifications/mark-all-read/${user?._id}`);
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user._id)
+        .eq('read', false);
+
+      if (error) throw error;
+
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
       showSuccess('All notifications marked as read.');
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
       showError('Failed to mark all notifications as read.');
     }
   };
@@ -104,16 +138,16 @@ const NotificationBell: React.FC = () => {
             <div className="flex flex-col">
               {notifications.map((notification) => (
                 <div
-                  key={notification._id}
+                  key={notification.id}
                   className={`flex items-start gap-2 p-4 text-sm ${
                     !notification.read ? 'bg-accent/20' : ''
                   } hover:bg-accent/50 cursor-pointer`}
-                  onClick={() => !notification.read && markAsRead(notification._id)}
+                  onClick={() => !notification.read && markAsRead(notification.id)}
                 >
                   <div className="flex-1">
                     <p className="font-medium">{notification.message}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(notification.createdAt).toLocaleString()}
+                      {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
                   {!notification.read && (
@@ -123,7 +157,7 @@ const NotificationBell: React.FC = () => {
                       className="h-6 w-6"
                       onClick={(e) => {
                         e.stopPropagation();
-                        markAsRead(notification._id);
+                        markAsRead(notification.id);
                       }}
                     >
                       <X className="h-4 w-4" />
