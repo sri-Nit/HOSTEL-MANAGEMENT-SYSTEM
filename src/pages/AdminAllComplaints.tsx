@@ -5,9 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Search, Filter, ArrowUpDown, CheckCircle, XCircle, User } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, CheckCircle, XCircle, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Dialog,
   DialogContent,
@@ -20,18 +21,13 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 interface Complaint {
-  _id: string;
-  studentName: string;
+  id: string;
   category: string;
   description: string;
   status: string;
-  createdAt: string;
-  rejectionReason?: string;
-  location: {
-    block: string;
-    floor: string;
-    room: string;
-  };
+  created_at: string;
+  location: any;
+  profiles: { name: string } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -45,65 +41,45 @@ const statusColors: Record<string, string> = {
 
 const AdminAllComplaints: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedComplaintId, setSelectedComplaintId] = useState<string | null>(null);
   
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
-  const loadComplaints = () => {
-    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    setComplaints(allComplaints);
-    setFilteredComplaints(allComplaints);
+  const fetchComplaints = async () => {
+    setLoading(true);
+    let query = supabase.from('complaints').select('*, profiles(name)');
+    
+    if (statusFilter !== 'all') {
+      query = query.eq('status', statusFilter);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setComplaints(data as any);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
-    loadComplaints();
-  }, []);
+    fetchComplaints();
+  }, [statusFilter]);
 
-  useEffect(() => {
-    let result = [...complaints];
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('complaints')
+      .update({ status: newStatus })
+      .eq('id', id);
 
-    if (statusFilter !== 'all') {
-      result = result.filter(c => c.status === statusFilter);
+    if (error) {
+      showError("Failed to update status.");
+    } else {
+      showSuccess(`Complaint ${newStatus} successfully!`);
+      fetchComplaints();
     }
-
-    if (categoryFilter !== 'all') {
-      result = result.filter(c => c.category === categoryFilter);
-    }
-
-    if (searchTerm) {
-      result = result.filter(c => 
-        c.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    result.sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-
-    setFilteredComplaints(result);
-  }, [statusFilter, categoryFilter, searchTerm, sortOrder, complaints]);
-
-  const handleUpdateStatus = (id: string, newStatus: string, reason?: string) => {
-    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    const updatedComplaints = allComplaints.map((c: Complaint) => {
-      if (c._id === id) {
-        return { ...c, status: newStatus, rejectionReason: reason || c.rejectionReason };
-      }
-      return c;
-    });
-    localStorage.setItem('user_complaints', JSON.stringify(updatedComplaints));
-    showSuccess(`Complaint ${newStatus} successfully!`);
-    loadComplaints();
-    setRejectionReason('');
-    setSelectedComplaintId(null);
   };
 
   return (
@@ -113,18 +89,12 @@ const AdminAllComplaints: React.FC = () => {
         <div className="container mx-auto max-w-7xl">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">All Complaints</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage and monitor every complaint submitted in the system.</p>
+            <p className="text-gray-600 dark:text-gray-400">Manage and monitor every complaint in the database.</p>
           </div>
 
           <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                Filters & Search
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -146,139 +116,59 @@ const AdminAllComplaints: React.FC = () => {
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="escalated">Escalated</SelectItem>
                   </SelectContent>
                 </Select>
-
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="Plumbing">Plumbing</SelectItem>
-                    <SelectItem value="Electrical">Electrical</SelectItem>
-                    <SelectItem value="Carpentry">Carpentry</SelectItem>
-                    <SelectItem value="Internet">Internet/WiFi</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2"
-                  onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
-                >
-                  <ArrowUpDown className="h-4 w-4" />
-                  Sort: {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
-                </Button>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead className="max-w-[250px]">Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredComplaints.length === 0 ? (
+              {loading ? (
+                <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        No complaints found matching your filters.
-                      </TableCell>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredComplaints.map((complaint) => (
-                      <TableRow key={complaint._id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            {complaint.studentName || 'Anonymous'}
-                          </div>
-                        </TableCell>
-                        <TableCell>{complaint.category}</TableCell>
-                        <TableCell>
-                          {complaint.location ? (
-                            <span className="text-xs">
-                              Block {complaint.location.block}, Room {complaint.location.room}
-                            </span>
-                          ) : 'N/A'}
-                        </TableCell>
-                        <TableCell className="max-w-[250px] truncate text-sm">
-                          {complaint.description}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[complaint.status]}>
-                            {complaint.status.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {complaint.status === 'pending' ? (
-                            <div className="flex gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50"
-                                onClick={() => handleUpdateStatus(complaint._id, 'approved')}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                              
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="h-8 px-2 text-red-600 border-red-200 hover:bg-red-50"
-                                    onClick={() => setSelectedComplaintId(complaint._id)}
-                                  >
-                                    <XCircle className="h-4 w-4 mr-1" />
-                                    Reject
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Reject Complaint</DialogTitle>
-                                    <DialogDescription>
-                                      Please provide a reason for rejecting this complaint. This will be visible to the student.
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <Textarea 
-                                    placeholder="Enter rejection reason..." 
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                  />
-                                  <DialogFooter>
-                                    <Button 
-                                      variant="destructive" 
-                                      onClick={() => handleUpdateStatus(complaint._id, 'rejected', rejectionReason)}
-                                      disabled={!rejectionReason}
-                                    >
-                                      Confirm Rejection
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">No actions available</span>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {complaints.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          No complaints found.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      complaints.map((complaint) => (
+                        <TableRow key={complaint.id}>
+                          <TableCell className="font-medium">{complaint.profiles?.name || 'Unknown'}</TableCell>
+                          <TableCell>{complaint.category}</TableCell>
+                          <TableCell>Block {complaint.location?.block}, Room {complaint.location?.room}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[complaint.status]}>
+                              {complaint.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {complaint.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handleUpdateStatus(complaint.id, 'approved')}>Approve</Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleUpdateStatus(complaint.id, 'rejected')}>Reject</Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>

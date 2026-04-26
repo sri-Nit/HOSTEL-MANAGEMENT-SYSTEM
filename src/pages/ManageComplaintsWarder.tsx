@@ -5,33 +5,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Eye } from 'lucide-react';
+import { Search, Filter, Eye, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Complaint {
-  _id: string;
-  studentName: string;
+  id: string;
   category: string;
   description: string;
   status: string;
-  createdAt: string;
-  location: {
-    block: string;
-    room: string;
-  };
+  created_at: string;
+  location: any;
+  profiles: { name: string } | null;
 }
 
 const ManageComplaintsWarder: React.FC = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    setComplaints(allComplaints);
+    const fetchComplaints = async () => {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*, profiles(name)')
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setComplaints(data as any);
+      }
+      setLoading(false);
+    };
+
+    fetchComplaints();
   }, []);
 
   const filteredComplaints = complaints.filter(c => 
-    c.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.profiles?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -75,48 +85,52 @@ const ManageComplaintsWarder: React.FC = () => {
 
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredComplaints.length === 0 ? (
+              {loading ? (
+                <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                        No complaints found.
-                      </TableCell>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredComplaints.map((complaint) => (
-                      <TableRow key={complaint._id}>
-                        <TableCell className="font-medium">{complaint.studentName}</TableCell>
-                        <TableCell>{complaint.category}</TableCell>
-                        <TableCell>Block {complaint.location?.block}, Room {complaint.location?.room}</TableCell>
-                        <TableCell>{new Date(complaint.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge className={statusColors[complaint.status]}>
-                            {complaint.status.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link to={`/guard/complaint/${complaint._id}`}>
-                            <Button size="sm" variant="ghost" className="gap-2">
-                              <Eye className="h-4 w-4" /> View
-                            </Button>
-                          </Link>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredComplaints.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                          No complaints found in the database.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      filteredComplaints.map((complaint) => (
+                        <TableRow key={complaint.id}>
+                          <TableCell className="font-medium">{complaint.profiles?.name || 'Unknown'}</TableCell>
+                          <TableCell>{complaint.category}</TableCell>
+                          <TableCell>Block {complaint.location?.block}, Room {complaint.location?.room}</TableCell>
+                          <TableCell>{new Date(complaint.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[complaint.status]}>
+                              {complaint.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Link to={`/guard/complaint/${complaint.id}`}>
+                              <Button size="sm" variant="ghost" className="gap-2">
+                                <Eye className="h-4 w-4" /> View
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
