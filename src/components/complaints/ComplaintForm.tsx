@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccess, showError } from '@/utils/toast';
 import { useAuth } from '@/context/AuthContext';
-import { Camera, X, Image as ImageIcon } from 'lucide-react';
+import { Camera, X, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
@@ -23,6 +24,7 @@ const formSchema = z.object({
 const ComplaintForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,32 +50,32 @@ const ComplaintForm = () => {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) return;
+    setLoading(true);
     try {
-      const existingComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-      
-      const newComplaint = {
-        _id: Math.random().toString(36).substr(2, 9),
-        studentName: user?.name || 'Unknown Student',
+      const { error } = await supabase.from('complaints').insert({
+        user_id: user._id,
         category: values.category,
         description: values.description,
         status: 'pending',
-        createdAt: new Date().toISOString(),
-        image: imagePreview, // Store the base64 image
         location: {
           block: values.block,
           floor: values.floor,
           room: values.room
-        }
-      };
+        },
+        image_url: imagePreview // In a real app, you'd upload to Supabase Storage first
+      });
 
-      localStorage.setItem('user_complaints', JSON.stringify([newComplaint, ...existingComplaints]));
-      
-      showSuccess("Complaint submitted with photo!");
+      if (error) throw error;
+
+      showSuccess("Complaint submitted to database!");
       form.reset();
       setImagePreview(null);
       navigate('/student/my-complaints');
-    } catch (error) {
-      showError("Failed to submit complaint.");
+    } catch (error: any) {
+      showError(error.message || "Failed to submit complaint.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -106,45 +108,15 @@ const ComplaintForm = () => {
         />
 
         <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="block"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Block</FormLabel>
-                <FormControl>
-                  <Input placeholder="A" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="floor"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Floor</FormLabel>
-                <FormControl>
-                  <Input placeholder="1" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="room"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Room</FormLabel>
-                <FormControl>
-                  <Input placeholder="101" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormField control={form.control} name="block" render={({ field }) => (
+            <FormItem><FormLabel>Block</FormLabel><FormControl><Input placeholder="A" {...field} /></FormControl><FormMessage /></FormItem>
+          )} />
+          <FormField control={form.control} name="floor" render={({ field }) => (
+            <FormItem><FormLabel>Floor</FormLabel><FormControl><Input placeholder="1" {...field} /></FormControl><FormMessage /></FormItem>
+          )} />
+          <FormField control={form.control} name="room" render={({ field }) => (
+            <FormItem><FormLabel>Room</FormLabel><FormControl><Input placeholder="101" {...field} /></FormControl><FormMessage /></FormItem>
+          )} />
         </div>
 
         <FormField
@@ -154,11 +126,7 @@ const ComplaintForm = () => {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Describe the issue in detail..." 
-                  className="min-h-[100px]"
-                  {...field} 
-                />
+                <Textarea placeholder="Describe the issue in detail..." className="min-h-[100px]" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -179,13 +147,7 @@ const ComplaintForm = () => {
             ) : (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                <Button 
-                  type="button" 
-                  variant="destructive" 
-                  size="icon" 
-                  className="absolute top-2 right-2 h-8 w-8 rounded-full"
-                  onClick={() => setImagePreview(null)}
-                >
+                <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-8 w-8 rounded-full" onClick={() => setImagePreview(null)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -193,7 +155,10 @@ const ComplaintForm = () => {
           </div>
         </div>
 
-        <Button type="submit" className="w-full">Submit Complaint</Button>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="animate-spin mr-2" /> : null}
+          Submit Complaint
+        </Button>
       </form>
     </Form>
   );
