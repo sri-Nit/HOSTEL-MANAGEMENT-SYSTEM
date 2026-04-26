@@ -58,7 +58,7 @@ const AdminUserManagement: React.FC = () => {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'admin': return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">Worker</Badge>;
+      case 'admin': return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 border-purple-200">Admin</Badge>;
       case 'guard': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200">Warder</Badge>;
       case 'student': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">Student</Badge>;
       case 'disabled': return <Badge variant="destructive">Disabled</Badge>;
@@ -89,7 +89,7 @@ const AdminUserManagement: React.FC = () => {
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="student">Students</TabsTrigger>
                     <TabsTrigger value="guard">Warders</TabsTrigger>
-                    <TabsTrigger value="admin">Workers</TabsTrigger>
+                    <TabsTrigger value="admin">Admins</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <div className="relative w-full md:w-72">
@@ -153,7 +153,7 @@ const AdminUserManagement: React.FC = () => {
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleRoleChange(user._id, 'admin')}>
                                 <UserCog className="mr-2 h-4 w-4 text-purple-600" />
-                                Set as Worker
+                                Set as Admin
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
