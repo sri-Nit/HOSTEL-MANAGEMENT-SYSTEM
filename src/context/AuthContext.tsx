@@ -21,11 +21,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchUserProfile = async (sessionUser: any, token: string) => {
     try {
-      const { data: profile, error } = await supabase
+      // Add a 5-second timeout to the profile fetch to prevent hanging
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', sessionUser.id)
         .single();
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+
+      const { data: profile, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
 
       if (error) throw error;
 
@@ -33,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         _id: sessionUser.id,
         name: profile.name || sessionUser.user_metadata.name,
         email: sessionUser.email || '',
-        role: profile.role as any, // Get role from DB instead of metadata
+        role: profile.role as any,
         hostelBlock: profile.hostel_block,
         roomNumber: profile.room_number,
         token: token
@@ -43,13 +50,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
-      console.error("Error fetching profile:", error);
-      // Fallback to metadata if DB fetch fails
+      console.error("Auth: Profile fetch failed, using metadata fallback", error);
       const userData: UserData = {
         _id: sessionUser.id,
-        name: sessionUser.user_metadata.name,
+        name: sessionUser.user_metadata.name || 'User',
         email: sessionUser.email || '',
-        role: sessionUser.user_metadata.role,
+        role: sessionUser.user_metadata.role || 'student',
         hostelBlock: sessionUser.user_metadata.hostelBlock,
         roomNumber: sessionUser.user_metadata.roomNumber,
         token: token
@@ -61,22 +67,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await fetchUserProfile(session.user, session.access_token);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await fetchUserProfile(session.user, session.access_token);
+        }
+      } catch (err) {
+        console.error("Auth: Initial check failed", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         await fetchUserProfile(session.user, session.access_token);
       } else {
         setUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('user');
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        setIsLoading(false);
       }
     });
 
@@ -90,10 +105,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleLogout = async () => {
+    setIsLoading(true);
     await supabase.auth.signOut();
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('user');
+    setIsLoading(false);
     navigate('/auth');
   };
 

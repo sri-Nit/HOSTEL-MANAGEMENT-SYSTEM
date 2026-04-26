@@ -5,18 +5,18 @@ import {
   ClipboardList, 
   Clock, 
   CheckCircle2, 
-  AlertTriangle, 
   ShieldAlert,
   TrendingUp,
   RefreshCw,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AdminBulletinForm from '@/components/bulletin/AdminBulletinForm';
-import { clearAllData } from '@/services/auth';
 import { showSuccess, showError } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 interface Complaint {
   id: string;
@@ -27,6 +27,7 @@ interface Complaint {
 }
 
 const AdminDashboard: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
@@ -70,11 +71,29 @@ const AdminDashboard: React.FC = () => {
     loadData();
   }, []);
 
-  const handleReset = () => {
-    if (window.confirm("Are you sure you want to clear local session data?")) {
-      clearAllData();
-      showSuccess("Local data cleared.");
-      window.location.reload();
+  const handleWipeData = async () => {
+    if (!currentUser) return;
+    
+    const confirm = window.confirm("DANGER: This will delete ALL complaints and ALL other user profiles. This cannot be undone. Continue?");
+    if (!confirm) return;
+
+    try {
+      setLoading(true);
+      
+      // Delete all complaints
+      const { error: compError } = await supabase.from('complaints').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (compError) throw compError;
+
+      // Delete all profiles except current user
+      const { error: profError } = await supabase.from('profiles').delete().neq('id', currentUser._id);
+      if (profError) throw profError;
+
+      showSuccess("System data wiped successfully. Note: Auth accounts must be deleted via Supabase SQL Editor.");
+      loadData();
+    } catch (error: any) {
+      showError("Failed to wipe data: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,12 +117,17 @@ const AdminDashboard: React.FC = () => {
                 System-wide overview of all hostel maintenance and security issues.
               </p>
             </div>
-            <Button variant="outline" onClick={handleReset} className="text-red-600 border-red-200 hover:bg-red-50">
-              <RefreshCw className="mr-2 h-4 w-4" /> Reset Local Data
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={loadData} disabled={loading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              </Button>
+              <Button variant="destructive" onClick={handleWipeData} disabled={loading}>
+                <Trash2 className="mr-2 h-4 w-4" /> Wipe System Data
+              </Button>
+            </div>
           </div>
 
-          {loading ? (
+          {loading && stats.total === 0 ? (
             <div className="flex justify-center py-12"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>
           ) : (
             <>
@@ -132,7 +156,7 @@ const AdminDashboard: React.FC = () => {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-primary" />
+                        <ShieldAlert className="h-5 w-5 text-primary" />
                         Recent System Activity
                       </CardTitle>
                     </CardHeader>
@@ -187,7 +211,7 @@ const AdminDashboard: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm opacity-90">
-                        Complaints that remain "In Progress" for more than 72 hours are automatically moved to the Escalated status for your review.
+                        To fully remove user accounts from the authentication system, you must run the SQL command in your Supabase dashboard.
                       </p>
                     </CardContent>
                   </Card>
