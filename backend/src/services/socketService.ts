@@ -14,6 +14,14 @@ export type NotificationType =
 
 export const initSocket = (socketServer: SocketIOServer) => {
   io = socketServer;
+
+  io.on('connection', (socket) => {
+    socket.on('joinRoom', (userId: string) => {
+      if (userId) {
+        socket.join(userId);
+      }
+    });
+  });
 };
 
 export const emitNotification = async (
@@ -39,6 +47,13 @@ export const emitNotification = async (
   if (error) throw error;
 
   if (io) {
-    io.to(userId).emit('newNotification', notification);
+    io.to(userId).emit('newNotification', {
+      _id: notification.id,
+      message: notification.message,
+      read: notification.read,
+      createdAt: notification.created_at,
+      type: notification.type,
+      complaintId: notification.complaint_id ?? undefined,
+    });
   }
 };

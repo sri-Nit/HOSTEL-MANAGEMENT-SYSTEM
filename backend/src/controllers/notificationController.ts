@@ -3,14 +3,23 @@ import { supabase } from '../services/supabaseClient';
 
 interface AuthRequest extends Request {
   user?: {
-    id: string;
+    _id: string;
   };
 }
+
+const mapNotification = (notification: Record<string, any>) => ({
+  _id: notification.id,
+  message: notification.message,
+  read: notification.read,
+  createdAt: notification.created_at,
+  type: notification.type,
+  complaintId: notification.complaint_id ?? undefined,
+});
 
 // 📩 Get notifications
 export const getNotificationsByUserId = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user.id !== req.params.userId) {
+    if (!req.user || req.user._id !== req.params.userId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -23,7 +32,7 @@ export const getNotificationsByUserId = async (req: AuthRequest, res: Response) 
 
     if (error) throw error;
 
-    res.json(data);
+    res.json((data || []).map(mapNotification));
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -42,7 +51,7 @@ export const markNotificationAsRead = async (req: AuthRequest, res: Response) =>
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    if (!req.user || notification.user_id !== req.user.id) {
+    if (!req.user || notification.user_id !== req.user._id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
@@ -55,7 +64,7 @@ export const markNotificationAsRead = async (req: AuthRequest, res: Response) =>
 
     if (updateError) throw updateError;
 
-    res.json(data);
+    res.json(mapNotification(data));
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -64,7 +73,7 @@ export const markNotificationAsRead = async (req: AuthRequest, res: Response) =>
 // ✅ Mark all as read
 export const markAllNotificationsAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user.id !== req.params.userId) {
+    if (!req.user || req.user._id !== req.params.userId) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 

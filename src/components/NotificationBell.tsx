@@ -37,7 +37,11 @@ const NotificationBell: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
+
     fetchNotifications();
+    socket.connect();
+    socket.emit('joinRoom', user._id);
 
     socket.on('newNotification', (newNotification: Notification) => {
       setNotifications((prev) => [newNotification, ...prev]);
@@ -47,6 +51,7 @@ const NotificationBell: React.FC = () => {
 
     return () => {
       socket.off('newNotification');
+      socket.disconnect();
     };
   }, [user]);
 
@@ -64,6 +69,8 @@ const NotificationBell: React.FC = () => {
   };
 
   const markAllAsRead = async () => {
+    if (!user) return;
+
     try {
       await api.put(`/notifications/mark-all-read/${user?._id}`);
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
