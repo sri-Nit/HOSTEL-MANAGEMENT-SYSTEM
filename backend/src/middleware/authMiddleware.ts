@@ -1,29 +1,62 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/User';
+import { supabase } from '../services/supabaseClient';
 
-interface AuthRequest extends Request {
-  user?: IUser;
+interface AuthUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  isApproved?: boolean;
+  hostelBlock?: string | null;
+  roomNumber?: string | null;
+  assignedCategories?: string[] | null;
 }
 
+interface AuthRequest extends Request {
+  user?: AuthUser;
+}
+
+const isUserApproved = (user: Record<string, any>) =>
+  typeof user.is_approved === 'boolean' ? user.is_approved : true;
+
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  let token;
+  let token: string | undefined;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-      req.user = await User.findById(decoded.id).select('-password') as IUser;
-      next();
+
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', decoded.id)
+        .maybeSingle();
+
+      if (error || !user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+
+      req.user = {
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isApproved: isUserApproved(user),
+        hostelBlock: user.hostel_block,
+        roomNumber: user.room_number,
+        assignedCategories: user.assigned_categories,
+      };
+
+      return next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  return res.status(401).json({ message: 'Not authorized, no token' });
 };
 
 export const authorizeRoles = (...roles: string[]) => {

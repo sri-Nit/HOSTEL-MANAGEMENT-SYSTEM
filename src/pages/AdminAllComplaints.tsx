@@ -159,6 +159,7 @@ const AdminAllComplaints: React.FC = () => {
                     <SelectItem value="Plumbing">Plumbing</SelectItem>
                     <SelectItem value="Electrical">Electrical</SelectItem>
                     <SelectItem value="Carpentry">Carpentry</SelectItem>
+                    <SelectItem value="Fire Alarm">Fire Alarm</SelectItem>
                     <SelectItem value="Internet">Internet/WiFi</SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>

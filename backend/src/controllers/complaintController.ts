@@ -1,47 +1,98 @@
 import { Request, Response } from 'express';
-import Complaint, { IComplaint } from '../models/Complaint';
-import User, { IUser } from '../models/User';
+import { supabase } from '../services/supabaseClient';
 import { emitNotification } from '../services/socketService';
-import mongoose from 'mongoose';
+
+const SAME_ISSUE_AUTO_APPROVE_THRESHOLD = Number(process.env.SAME_ISSUE_AUTO_APPROVE_THRESHOLD || 3);
 
 interface AuthRequest extends Request {
-  user?: IUser;
+  user?: {
+    _id: string;
+    name: string;
+    role: string;
+  };
 }
 
-export const submitComplaint = async (req: AuthRequest, res: Response) => {
-  const { category, description, location } = req.body;
-  const images = (req.files as Express.Multer.File[])?.map(file => `/uploads/${file.filename}`);
+const normalizeValue = (value: unknown) => String(value || '').trim().toLowerCase();
 
+const isSameIssue = (
+  complaint: { category?: string; location?: { block?: string; floor?: string; room?: string } },
+  category: string,
+  location: { block: string; floor: string; room?: string }
+) => {
+  return (
+    normalizeValue(complaint.category) === normalizeValue(category) &&
+    normalizeValue(complaint.location?.block) === normalizeValue(location.block) &&
+    normalizeValue(complaint.location?.floor) === normalizeValue(location.floor) &&
+    normalizeValue(complaint.location?.room) === normalizeValue(location.room)
+  );
+};
+
+export const submitComplaint = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    const complaint = await Complaint.create({
-      userId: req.user._id,
-      category,
-      description,
-      location,
-      images: images || [],
-      status: 'pending',
-    });
+    const { category, description, location } = req.body;
+    const normalizedLocation = {
+      block: location?.block,
+      floor: location?.floor,
+      room: location?.room || ''
+    };
 
-    // Notify Student (Confirmation)
+    const { data: matchingComplaints, error: matchingComplaintsError } = await supabase
+      .from('complaints')
+      .select('category, location, status')
+      .eq('category', category)
+      .in('status', ['pending', 'approved', 'in_progress', 'escalated']);
+
+    if (matchingComplaintsError) throw matchingComplaintsError;
+
+    const sameIssueCount = (matchingComplaints || []).filter((existingComplaint) =>
+      isSameIssue(existingComplaint, category, normalizedLocation)
+    ).length;
+
+    const shouldAutoApprove = sameIssueCount + 1 >= SAME_ISSUE_AUTO_APPROVE_THRESHOLD;
+    const initialStatus = shouldAutoApprove ? 'approved' : 'pending';
+
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .insert([
+        {
+          category,
+          description,
+          location: normalizedLocation,
+          status: initialStatus,
+          user_id: req.user._id
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
     await emitNotification(
       req.user._id,
-      `Your complaint #${complaint._id.toString().slice(-6)} has been submitted successfully.`,
-      'complaint_submitted',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      shouldAutoApprove
+        ? `Your complaint #${complaint.id.slice(-6)} was automatically approved because multiple residents reported the same issue.`
+        : `Your complaint #${complaint.id.slice(-6)} has been submitted successfully.`,
+      shouldAutoApprove ? 'complaint_approved' : 'complaint_submitted',
+      complaint.id
     );
 
-    // Notify Wardens
-    const wardens = await User.find({ role: 'warden' });
-    for (const warden of wardens) {
+    const { data: warders } = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'guard');
+
+    for (const warder of warders || []) {
       await emitNotification(
-        warden._id,
-        `New complaint #${complaint._id.toString().slice(-6)} submitted by ${req.user.name}.`,
-        'complaint_submitted',
-        complaint._id as mongoose.Schema.Types.ObjectId
+        warder.id,
+        shouldAutoApprove
+          ? `Complaint #${complaint.id.slice(-6)} was automatically approved after repeated reports and is ready for assignment.`
+          : `New complaint #${complaint.id.slice(-6)} submitted by ${req.user.name}.`,
+        shouldAutoApprove ? 'complaint_approved' : 'complaint_submitted',
+        complaint.id
       );
     }
 
@@ -57,28 +108,24 @@ export const getComplaints = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: 'Not authenticated' });
     }
 
-    let complaints: IComplaint[] = [];
-    const userRole = req.user.role;
-    const userId = req.user._id;
+    let query = supabase
+      .from('complaints')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (userRole === 'student') {
-      complaints = await Complaint.find({ userId }).populate('assignedTo', 'name email');
-    } else if (userRole === 'warden') {
-      complaints = await Complaint.find({ status: { $in: ['pending', 'approved', 'in_progress', 'resolved', 'escalated'] } })
-        .populate('userId', 'name email hostelBlock roomNumber')
-        .populate('assignedTo', 'name email');
-    } else if (userRole === 'service_personnel') {
-      complaints = await Complaint.find({ assignedTo: userId, status: { $in: ['approved', 'in_progress'] } })
-        .populate('userId', 'name email hostelBlock roomNumber');
-    } else if (userRole === 'admin') {
-      complaints = await Complaint.find({})
-        .populate('userId', 'name email hostelBlock roomNumber')
-        .populate('assignedTo', 'name email');
-    } else {
+    if (req.user.role === 'student') {
+      query = query.eq('user_id', req.user._id);
+    } else if (req.user.role === 'service_personnel') {
+      query = query.eq('assigned_to', req.user._id);
+    } else if (!['guard', 'admin'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    res.json(complaints);
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    res.json(data || []);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -86,15 +133,25 @@ export const getComplaints = async (req: AuthRequest, res: Response) => {
 
 export const getComplaintById = async (req: AuthRequest, res: Response) => {
   try {
-    const complaint = await Complaint.findById(req.params.id)
-      .populate('userId', 'name email hostelBlock roomNumber')
-      .populate('assignedTo', 'name email');
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
 
-    if (!complaint) {
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    if (req.user?.role === 'student' && complaint.userId.toString() !== req.user._id.toString()) {
+    if (req.user.role === 'student' && complaint.user_id !== req.user._id) {
+      return res.status(403).json({ message: 'Not authorized to view this complaint' });
+    }
+
+    if (req.user.role === 'service_personnel' && complaint.assigned_to !== req.user._id) {
       return res.status(403).json({ message: 'Not authorized to view this complaint' });
     }
 
@@ -105,42 +162,43 @@ export const getComplaintById = async (req: AuthRequest, res: Response) => {
 };
 
 export const approveComplaint = async (req: AuthRequest, res: Response) => {
-  const { assignedTo } = req.body;
-
   try {
-    const complaint = await Complaint.findById(req.params.id);
-    if (!complaint) {
+    const { id } = req.params;
+    const { assignedTo } = req.body;
+
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .update({
+        status: 'approved',
+        assigned_to: assignedTo,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    if (complaint.status !== 'pending') {
-      return res.status(400).json({ message: 'Complaint is not in pending status' });
-    }
+    const { data: servicePersonnel } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', assignedTo)
+      .single();
 
-    const servicePersonnel = await User.findById(assignedTo);
-    if (!servicePersonnel || servicePersonnel.role !== 'service_personnel') {
-      return res.status(400).json({ message: 'Invalid service personnel ID' });
-    }
-
-    complaint.status = 'approved';
-    complaint.assignedTo = assignedTo;
-    complaint.updatedAt = new Date();
-    await complaint.save();
-
-    // Notify Student (Approved & Assigned)
     await emitNotification(
-      complaint.userId,
-      `Your complaint #${complaint._id.toString().slice(-6)} has been approved and assigned to ${servicePersonnel.name}.`,
+      complaint.user_id,
+      `Your complaint #${complaint.id.slice(-6)} has been approved and assigned to ${servicePersonnel?.name}.`,
       'complaint_approved',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      complaint.id
     );
 
-    // Notify Service Personnel
     await emitNotification(
       assignedTo,
-      `You have been assigned a new complaint #${complaint._id.toString().slice(-6)}.`,
+      `You have been assigned a new complaint #${complaint.id.slice(-6)}.`,
       'complaint_assigned',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      complaint.id
     );
 
     res.json(complaint);
@@ -150,29 +208,30 @@ export const approveComplaint = async (req: AuthRequest, res: Response) => {
 };
 
 export const rejectComplaint = async (req: AuthRequest, res: Response) => {
-  const { rejectionReason } = req.body;
-
   try {
-    const complaint = await Complaint.findById(req.params.id);
-    if (!complaint) {
+    const { id } = req.params;
+    const { rejectionReason } = req.body;
+
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .update({
+        status: 'rejected',
+        rejection_reason: rejectionReason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    if (complaint.status !== 'pending') {
-      return res.status(400).json({ message: 'Complaint is not in pending status' });
-    }
-
-    complaint.status = 'rejected';
-    complaint.rejectionReason = rejectionReason;
-    complaint.updatedAt = new Date();
-    await complaint.save();
-
-    // Notify Student (Rejected)
     await emitNotification(
-      complaint.userId,
-      `Your complaint #${complaint._id.toString().slice(-6)} has been rejected. Reason: ${rejectionReason}`,
+      complaint.user_id,
+      `Your complaint #${complaint.id.slice(-6)} has been rejected. Reason: ${rejectionReason}`,
       'complaint_rejected',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      complaint.id
     );
 
     res.json(complaint);
@@ -183,29 +242,27 @@ export const rejectComplaint = async (req: AuthRequest, res: Response) => {
 
 export const startComplaint = async (req: AuthRequest, res: Response) => {
   try {
-    const complaint = await Complaint.findById(req.params.id);
-    if (!complaint) {
+    const { id } = req.params;
+
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .update({
+        status: 'in_progress',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    if (complaint.assignedTo?.toString() !== req.user?._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this complaint' });
-    }
-
-    if (complaint.status !== 'approved') {
-      return res.status(400).json({ message: 'Complaint is not in approved status' });
-    }
-
-    complaint.status = 'in_progress';
-    complaint.updatedAt = new Date();
-    await complaint.save();
-
-    // Notify Student (In Progress)
     await emitNotification(
-      complaint.userId,
-      `Your complaint #${complaint._id.toString().slice(-6)} is now in progress.`,
+      complaint.user_id,
+      `Your complaint #${complaint.id.slice(-6)} is now in progress.`,
       'complaint_in_progress',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      complaint.id
     );
 
     res.json(complaint);
@@ -215,45 +272,41 @@ export const startComplaint = async (req: AuthRequest, res: Response) => {
 };
 
 export const resolveComplaint = async (req: AuthRequest, res: Response) => {
-  const { resolutionNote } = req.body;
-  const resolutionPhoto = (req.file as Express.Multer.File)?.filename ? `/uploads/${(req.file as Express.Multer.File).filename}` : undefined;
-
   try {
-    const complaint = await Complaint.findById(req.params.id);
-    if (!complaint) {
+    const { id } = req.params;
+
+    const { data: complaint, error } = await supabase
+      .from('complaints')
+      .update({
+        status: 'resolved',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !complaint) {
       return res.status(404).json({ message: 'Complaint not found' });
     }
 
-    if (complaint.assignedTo?.toString() !== req.user?._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this complaint' });
-    }
-
-    if (complaint.status !== 'in_progress') {
-      return res.status(400).json({ message: 'Complaint is not in progress status' });
-    }
-
-    complaint.status = 'resolved';
-    complaint.resolutionNote = resolutionNote;
-    complaint.resolutionPhoto = resolutionPhoto;
-    complaint.updatedAt = new Date();
-    await complaint.save();
-
-    // Notify Student (Resolved)
     await emitNotification(
-      complaint.userId,
-      `Your complaint #${complaint._id.toString().slice(-6)} has been resolved!`,
+      complaint.user_id,
+      `Your complaint #${complaint.id.slice(-6)} has been resolved!`,
       'complaint_resolved',
-      complaint._id as mongoose.Schema.Types.ObjectId
+      complaint.id
     );
 
-    // Notify Warden
-    const wardens = await User.find({ role: 'warden' });
-    for (const warden of wardens) {
+    const { data: warders } = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'guard');
+
+    for (const warder of warders || []) {
       await emitNotification(
-        warden._id,
-        `Complaint #${complaint._id.toString().slice(-6)} has been resolved by ${req.user?.name}.`,
+        warder.id,
+        `Complaint #${complaint.id.slice(-6)} has been resolved by ${req.user?.name}.`,
         'complaint_resolved',
-        complaint._id as mongoose.Schema.Types.ObjectId
+        complaint.id
       );
     }
 
@@ -262,3 +315,6 @@ export const resolveComplaint = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const createComplaint = submitComplaint;
+export const markInProgress = startComplaint;

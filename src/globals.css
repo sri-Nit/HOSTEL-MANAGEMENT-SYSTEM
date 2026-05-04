@@ -1,47 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 228 33% 98%;
+    --foreground: 229 42% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 229 42% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 229 42% 16%;
 
-    --primary: 18 78% 48%; /* #d9531e */
+    --primary: 239 48% 44%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 228 35% 96%;
+    --secondary-foreground: 229 42% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 228 30% 95%;
+    --muted-foreground: 228 13% 43%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 230 100% 97%;
+    --accent-foreground: 239 48% 44%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 18 78% 48%;
+    --border: 229 24% 88%;
+    --input: 229 24% 88%;
+    --ring: 239 48% 44%;
 
-    --radius: 0.75rem;
+    --radius: 0.9rem;
 
-    --sidebar-background: 222.2 47.4% 11.2%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 18 78% 48%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 229 42% 16%;
+    --sidebar-primary: 239 48% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 18 78% 48%;
+    --sidebar-accent: 228 33% 98%;
+    --sidebar-accent-foreground: 239 48% 44%;
+    --sidebar-border: 229 24% 88%;
+    --sidebar-ring: 239 48% 44%;
   }
 
   .dark {
@@ -82,5 +84,74 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    font-family: 'Manrope', 'Segoe UI Variable', 'Segoe UI', sans-serif;
+    background-image:
+      radial-gradient(circle at top left, rgba(83, 92, 212, 0.08), transparent 24%),
+      radial-gradient(circle at bottom right, rgba(30, 41, 59, 0.06), transparent 28%);
+    background-attachment: fixed;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .campus-page {
+    @apply min-h-[calc(100vh-76px)] bg-transparent;
+  }
+
+  .campus-panel {
+    @apply rounded-2xl border border-[rgba(74,85,150,0.14)] bg-white shadow-[0_18px_40px_-24px_rgba(42,51,107,0.28)];
+  }
+
+  .campus-panel-soft {
+    @apply rounded-2xl border border-[rgba(74,85,150,0.1)] bg-[rgba(255,255,255,0.82)] shadow-[0_12px_30px_-24px_rgba(42,51,107,0.2)] backdrop-blur-sm;
+  }
+
+  .campus-stat {
+    @apply relative overflow-hidden rounded-xl border border-[rgba(72,83,154,0.18)] bg-white px-5 py-4 shadow-[0_10px_24px_-22px_rgba(42,51,107,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-24px_rgba(42,51,107,0.34)];
+  }
+
+  .campus-section-title {
+    @apply text-[1.95rem] font-extrabold tracking-tight text-[#252b63];
+  }
+
+  .campus-subtle {
+    @apply text-sm font-medium text-slate-500;
+  }
+
+  .campus-table-shell {
+    @apply overflow-hidden rounded-2xl border border-[rgba(72,83,154,0.16)] bg-white shadow-[0_16px_30px_-24px_rgba(42,51,107,0.25)];
+  }
+}
+
+@layer utilities {
+  .animate-fade-up {
+    animation: fade-up 420ms ease-out both;
+  }
+
+  .animate-fade-in-soft {
+    animation: fade-in-soft 300ms ease-out both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-soft {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

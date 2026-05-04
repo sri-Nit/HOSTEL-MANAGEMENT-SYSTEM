@@ -12,12 +12,14 @@ import { showSuccess, showError } from '@/utils/toast';
 import { useAuth } from '@/context/AuthContext';
 import { Camera, X, Image as ImageIcon } from 'lucide-react';
 
+const SAME_ISSUE_AUTO_APPROVE_THRESHOLD = 3;
+
 const formSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   block: z.string().min(1, "Block is required"),
   floor: z.string().min(1, "Floor is required"),
-  room: z.string().min(1, "Room is required"),
+  room: z.string().optional(),
 });
 
 const ComplaintForm = () => {
@@ -50,25 +52,40 @@ const ComplaintForm = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const existingComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
+      const sameIssueCount = existingComplaints.filter((complaint: any) => {
+        const sameCategory = String(complaint.category || '').trim().toLowerCase() === values.category.trim().toLowerCase();
+        const sameBlock = String(complaint.location?.block || '').trim().toLowerCase() === values.block.trim().toLowerCase();
+        const sameFloor = String(complaint.location?.floor || '').trim().toLowerCase() === values.floor.trim().toLowerCase();
+        const sameRoom = String(complaint.location?.room || '').trim().toLowerCase() === String(values.room || '').trim().toLowerCase();
+        const unresolved = ['pending', 'approved', 'in_progress', 'escalated'].includes(complaint.status);
+
+        return sameCategory && sameBlock && sameFloor && sameRoom && unresolved;
+      }).length;
+
+      const shouldAutoApprove = sameIssueCount + 1 >= SAME_ISSUE_AUTO_APPROVE_THRESHOLD;
       
       const newComplaint = {
         _id: Math.random().toString(36).substr(2, 9),
         studentName: user?.name || 'Unknown Student',
         category: values.category,
         description: values.description,
-        status: 'pending',
+        status: shouldAutoApprove ? 'approved' : 'pending',
         createdAt: new Date().toISOString(),
         image: imagePreview, // Store the base64 image
         location: {
           block: values.block,
           floor: values.floor,
-          room: values.room
+          room: values.room || ''
         }
       };
 
       localStorage.setItem('user_complaints', JSON.stringify([newComplaint, ...existingComplaints]));
       
-      showSuccess("Complaint submitted with photo!");
+      showSuccess(
+        shouldAutoApprove
+          ? "Complaint auto-approved because 3 or more residents reported the same issue."
+          : "Complaint submitted with photo!"
+      );
       form.reset();
       setImagePreview(null);
       navigate('/student/my-complaints');
@@ -96,6 +113,7 @@ const ComplaintForm = () => {
                   <SelectItem value="Plumbing">Plumbing</SelectItem>
                   <SelectItem value="Electrical">Electrical</SelectItem>
                   <SelectItem value="Carpentry">Carpentry</SelectItem>
+                  <SelectItem value="Fire Alarm">Fire Alarm</SelectItem>
                   <SelectItem value="Internet">Internet/WiFi</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
@@ -139,7 +157,7 @@ const ComplaintForm = () => {
               <FormItem>
                 <FormLabel>Room</FormLabel>
                 <FormControl>
-                  <Input placeholder="101" {...field} />
+                  <Input placeholder="101 (optional for floor-wide issue)" {...field} value={field.value || ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

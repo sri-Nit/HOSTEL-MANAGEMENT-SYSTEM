@@ -78,20 +78,20 @@ const NotificationBell: React.FC = () => {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="relative rounded-full border border-[rgba(72,83,154,0.12)] bg-white text-slate-500 hover:bg-[#f5f7ff] hover:text-[#2f3c97]">
+          <Bell className="h-4.5 w-4.5" />
           {unreadCount > 0 && (
-            <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+            <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#b94a48] px-1.5 text-[10px] font-bold leading-none text-white">
               {unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0">
-        <div className="flex items-center justify-between p-4">
-          <h4 className="font-medium">Notifications</h4>
+      <PopoverContent className="w-80 overflow-hidden rounded-2xl border-[rgba(72,83,154,0.14)] p-0 shadow-[0_18px_40px_-24px_rgba(42,51,107,0.35)]">
+        <div className="flex items-center justify-between bg-[#f8f9ff] p-4">
+          <h4 className="font-bold text-[#252b63]">Notifications</h4>
           {unreadCount > 0 && (
-            <Button variant="link" size="sm" onClick={markAllAsRead}>
+            <Button variant="link" size="sm" className="text-[#2f3c97]" onClick={markAllAsRead}>
               Mark all as read
             </Button>
           )}
@@ -105,14 +105,14 @@ const NotificationBell: React.FC = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`flex items-start gap-2 p-4 text-sm ${
-                    !notification.read ? 'bg-accent/20' : ''
-                  } hover:bg-accent/50 cursor-pointer`}
+                  className={`flex cursor-pointer items-start gap-2 p-4 text-sm transition-colors duration-200 ${
+                    !notification.read ? 'bg-[#f7f8ff]' : ''
+                  } hover:bg-[#eef1ff]`}
                   onClick={() => !notification.read && markAsRead(notification._id)}
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-medium text-[#252b63]">{notification.message}</p>
+                    <p className="text-xs text-slate-500">
                       {new Date(notification.createdAt).toLocaleString()}
                     </p>
                   </div>

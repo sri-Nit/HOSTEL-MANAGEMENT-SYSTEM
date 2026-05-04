@@ -18,6 +18,9 @@ const SECURITY_QUESTIONS = [
   "What is your favorite book?"
 ];
 
+const SIGN_IN_BACKGROUND =
+  'https://nitdelhi.ac.in/_next/static/media/admin.3cdb9490.png';
+
 const Auth: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login');
   const [name, setName] = useState('');
@@ -52,8 +55,12 @@ const Auth: React.FC = () => {
           registerData.hostelBlock = hostelBlock;
           registerData.roomNumber = roomNumber;
         }
-        await register(registerData);
-        showSuccess('Registration successful! Please log in.');
+        const response = await register(registerData);
+        showSuccess(
+          response.requiresApproval
+            ? 'Registration submitted. An admin must approve your warder account before you can log in.'
+            : 'Registration successful! Please log in.'
+        );
         setMode('login');
       } else if (mode === 'login') {
         const userData = await login({ email, password });
@@ -92,10 +99,11 @@ const Auth: React.FC = () => {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden font-sans">
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop")' }}
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-[1.02] transition-transform duration-700"
+        style={{ backgroundImage: `url("${SIGN_IN_BACKGROUND}")` }}
       />
-      <div className="absolute inset-0 z-10 bg-black/40" />
+      <div className="absolute inset-0 z-10 bg-[linear-gradient(110deg,rgba(9,18,44,0.74)_0%,rgba(20,36,86,0.58)_40%,rgba(255,255,255,0.18)_100%)]" />
+      <div className="absolute inset-0 z-10 backdrop-blur-[1.5px]" />
 
       <div className="relative z-20 container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-12 max-w-6xl">
         <div className="w-full md:w-1/2 text-white space-y-6 animate-in fade-in slide-in-from-left-8 duration-700">
@@ -103,7 +111,7 @@ const Auth: React.FC = () => {
             {mode === 'forgot' ? 'Reset\nAccess' : 'Welcome\nBack'}
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-md leading-relaxed">
-            HCMS - Hostel Complaint Management System. Streamlining campus life one request at a time.
+            HCMS - Hostel Complaint Management System for NIT Delhi. Report issues, track progress, and keep campus services moving smoothly.
           </p>
           <div className="flex items-center gap-6 pt-4">
             <Facebook className="h-6 w-6 cursor-pointer hover:text-blue-400 transition-colors" />
@@ -114,7 +122,7 @@ const Auth: React.FC = () => {
         </div>
 
         <div className="w-full md:w-[450px] animate-in fade-in slide-in-from-right-8 duration-700">
-          <div className="space-y-8">
+          <div className="space-y-8 rounded-[28px] border border-white/22 bg-white/14 p-6 shadow-[0_24px_80px_rgba(10,18,38,0.38)] backdrop-blur-xl md:p-8">
             <div className="flex items-center gap-4">
               {mode !== 'login' && (
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => {

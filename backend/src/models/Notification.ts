@@ -1,10 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface INotification extends Document {
-  userId: mongoose.Schema.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   message: string;
   type: 'complaint_submitted' | 'complaint_approved' | 'complaint_rejected' | 'complaint_assigned' | 'complaint_in_progress' | 'complaint_resolved' | 'complaint_escalated';
-  complaintId?: mongoose.Schema.Types.ObjectId;
+  complaintId?: mongoose.Types.ObjectId;
   read: boolean;
   createdAt: Date;
 }

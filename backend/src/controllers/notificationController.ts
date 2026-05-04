@@ -1,59 +1,80 @@
 import { Request, Response } from 'express';
-import Notification from '../models/Notification';
-import { IUser } from '../models/User';
-import mongoose from 'mongoose';
+import { supabase } from '../services/supabaseClient';
 
 interface AuthRequest extends Request {
-  user?: IUser;
+  user?: {
+    id: string;
+  };
 }
 
+// 📩 Get notifications
 export const getNotificationsByUserId = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user._id.toString() !== req.params.userId) {
-      return res.status(403).json({ message: 'Not authorized to view these notifications' });
+    if (!req.user || req.user.id !== req.params.userId) {
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const notifications = await Notification.find({ userId: req.params.userId })
-      .sort({ createdAt: -1 })
-      .limit(50); // Limit to last 50 notifications
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', req.params.userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
 
-    res.json(notifications);
+    if (error) throw error;
+
+    res.json(data);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// ✅ Mark one as read
 export const markNotificationAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    const notification = await Notification.findById(req.params.id);
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
 
-    if (!notification) {
+    if (error || !notification) {
       return res.status(404).json({ message: 'Notification not found' });
     }
 
-    if (!req.user || notification.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to update this notification' });
+    if (!req.user || notification.user_id !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
-    notification.read = true;
-    await notification.save();
+    const { data, error: updateError } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', req.params.id)
+      .select()
+      .single();
 
-    res.json(notification);
+    if (updateError) throw updateError;
+
+    res.json(data);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// ✅ Mark all as read
 export const markAllNotificationsAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user || req.user._id.toString() !== req.params.userId) {
-      return res.status(403).json({ message: 'Not authorized to update these notifications' });
+    if (!req.user || req.user.id !== req.params.userId) {
+      return res.status(403).json({ message: 'Not authorized' });
     }
 
-    await Notification.updateMany(
-      { userId: req.params.userId, read: false },
-      { $set: { read: true } }
-    );
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', req.params.userId)
+      .eq('read', false);
+
+    if (error) throw error;
 
     res.json({ message: 'All notifications marked as read' });
   } catch (error: any) {

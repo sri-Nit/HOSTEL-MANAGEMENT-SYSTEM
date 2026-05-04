@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IEscalation extends Document {
-  complaintId: mongoose.Schema.Types.ObjectId;
+  complaintId: mongoose.Types.ObjectId;
   escalatedAt: Date;
   status: 'pending' | 'resolved_by_admin';
 }

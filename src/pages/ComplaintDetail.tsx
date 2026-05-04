@@ -70,7 +70,9 @@ const ComplaintDetail: React.FC = () => {
 
   const isGuard = user?.role === 'guard';
   const isAdmin = user?.role === 'admin';
-  const canAction = (isGuard || isAdmin) && complaint.status === 'pending';
+  const canApproveOrReject = (isGuard || isAdmin) && complaint.status === 'pending';
+  const canStartWork = (isGuard || isAdmin) && complaint.status === 'approved';
+  const canCompleteWork = (isGuard || isAdmin) && complaint.status === 'in_progress';
 
   return (
     <div className="flex min-h-[calc(100vh-64px)]">
@@ -155,14 +157,18 @@ const ComplaintDetail: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {canAction && (
+              {(canApproveOrReject || canStartWork || canCompleteWork) && (
                 <Card className="border-primary/20 bg-primary/5">
                   <CardHeader>
                     <CardTitle className="text-lg">Verification Actions</CardTitle>
-                    <CardDescription>Approve this complaint to assign it to a worker or reject it with a reason.</CardDescription>
+                    <CardDescription>
+                      {canApproveOrReject && 'Approve this complaint or reject it with a reason.'}
+                      {canStartWork && 'Move this approved complaint into active work.'}
+                      {canCompleteWork && 'Mark this in-progress complaint as completed.'}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {!showRejectInput ? (
+                    {canApproveOrReject && !showRejectInput ? (
                       <div className="flex gap-4">
                         <Button 
                           className="flex-1 bg-green-600 hover:bg-green-700"
@@ -178,7 +184,7 @@ const ComplaintDetail: React.FC = () => {
                           <XCircle className="mr-2 h-4 w-4" /> Reject
                         </Button>
                       </div>
-                    ) : (
+                    ) : canApproveOrReject && showRejectInput ? (
                       <div className="space-y-4">
                         <Textarea 
                           placeholder="Enter reason for rejection..."
@@ -202,7 +208,25 @@ const ComplaintDetail: React.FC = () => {
                           </Button>
                         </div>
                       </div>
-                    )}
+                    ) : canStartWork ? (
+                      <div className="flex gap-4">
+                        <Button
+                          className="flex-1 bg-amber-600 hover:bg-amber-700"
+                          onClick={() => updateStatus('in_progress')}
+                        >
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Mark In Progress
+                        </Button>
+                      </div>
+                    ) : canCompleteWork ? (
+                      <div className="flex gap-4">
+                        <Button
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                          onClick={() => updateStatus('resolved')}
+                        >
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Mark Completed
+                        </Button>
+                      </div>
+                    ) : null}
                   </CardContent>
                 </Card>
               )}

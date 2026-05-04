@@ -4,7 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle, ArrowRight, ShieldCheck, ClipboardList, MapPin } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Complaint {
   _id: string;
@@ -13,6 +14,11 @@ interface Complaint {
   description: string;
   status: string;
   createdAt: string;
+  location?: {
+    block?: string;
+    floor?: string;
+    room?: string;
+  };
 }
 
 const GuardDashboard: React.FC = () => {
@@ -20,97 +26,115 @@ const GuardDashboard: React.FC = () => {
   const [pendingComplaints, setPendingComplaints] = useState<Complaint[]>([]);
   const [stats, setStats] = useState({
     pending: 0,
-    resolvedToday: 0,
-    active: 0
+    resolved: 0,
+    escalated: 0
   });
 
   useEffect(() => {
     const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
     const pending = allComplaints.filter((c: Complaint) => c.status === 'pending');
-    const active = allComplaints.filter((c: Complaint) => c.status === 'approved' || c.status === 'in_progress');
-    
-    setPendingComplaints(pending.slice(0, 5));
+
+    setPendingComplaints(pending.slice(0, 6));
     setStats({
       pending: pending.length,
-      active: active.length,
-      resolvedToday: allComplaints.filter((c: Complaint) => c.status === 'resolved').length
+      resolved: allComplaints.filter((c: Complaint) => c.status === 'resolved').length,
+      escalated: allComplaints.filter((c: Complaint) => c.status === 'escalated').length
     });
   }, []);
 
+  const statCards = [
+    { label: 'Pending Tasks', value: stats.pending, tone: 'bg-[#fff2cf] text-[#9d6a00] border-[#f3d989]' },
+    { label: 'Resolved Tasks', value: stats.resolved, tone: 'bg-[#e8f8ee] text-[#2f8b52] border-[#bfe7ce]' },
+    { label: 'Escalated', value: stats.escalated, tone: 'bg-[#fdecec] text-[#b94a48] border-[#efb7b7]' },
+  ];
+
   return (
-    <div className="flex min-h-[calc(100vh-64px)]">
+    <div className="campus-page flex">
       <Sidebar />
-      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto max-w-5xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Warder Dashboard</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Welcome, {user?.name}. You have {stats.pending} complaints awaiting verification.
-            </p>
-          </div>
+      <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6 animate-fade-up">
+          <section className="campus-panel-soft px-6 py-6 sm:px-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#eef1ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#2f3c97]">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Warder Console
+                </div>
+                <h1 className="campus-section-title">Worker Dashboard</h1>
+                <p className="mt-2 max-w-2xl campus-subtle">
+                  View assigned complaints, verify new submissions, and move approved work through active resolution.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[rgba(72,83,154,0.14)] bg-white px-5 py-4 text-sm shadow-[0_16px_30px_-24px_rgba(42,51,107,0.2)]">
+                <p className="font-semibold text-slate-500">Signed in as</p>
+                <p className="mt-1 text-lg font-extrabold text-[#252b63]">{user?.name}</p>
+              </div>
+            </div>
+          </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="border-l-4 border-l-blue-500">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Pending Review</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-blue-600">{stats.pending}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-yellow-500">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase">In Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-yellow-600">{stats.active}</div>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-l-green-500">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase">Resolved Total</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">{stats.resolvedToday}</div>
-              </CardContent>
-            </Card>
-          </div>
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {statCards.map((card, index) => (
+              <div key={card.label} className={`campus-stat animate-fade-up ${card.tone}`} style={{ animationDelay: `${index * 80}ms` }}>
+                <p className="text-xs font-extrabold uppercase tracking-[0.22em]">{card.label}</p>
+                <div className="mt-3 text-center text-4xl font-extrabold">{card.value}</div>
+              </div>
+            ))}
+          </section>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-500" />
-                Recent Pending Complaints
-              </CardTitle>
+          <Card className="campus-table-shell">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 px-6 py-5">
+              <div>
+                <CardTitle className="text-xl font-extrabold text-[#252b63]">Pending Review Queue</CardTitle>
+                <p className="mt-1 text-sm text-slate-500">Complaints awaiting verification or action.</p>
+              </div>
               <Link to="/guard/complaints">
-                <Button variant="ghost" size="sm" className="text-blue-600">
-                  View All <ArrowRight className="ml-1 h-4 w-4" />
+                <Button variant="ghost" size="sm" className="rounded-full text-[#2f3c97] hover:bg-[#eef1ff]">
+                  View All <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {pendingComplaints.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500 opacity-20" />
-                    <p>No pending complaints to review.</p>
-                  </div>
-                ) : (
-                  pendingComplaints.map((complaint) => (
-                    <div key={complaint._id} className="flex items-center justify-between p-4 border rounded-lg bg-white dark:bg-gray-900 hover:shadow-sm transition-shadow">
-                      <div className="flex flex-col">
-                        <span className="font-semibold">{complaint.category}</span>
-                        <span className="text-xs text-muted-foreground">
-                          From: {complaint.studentName} • {new Date(complaint.createdAt).toLocaleDateString()}
-                        </span>
+            <CardContent className="p-0">
+              {pendingComplaints.length === 0 ? (
+                <div className="px-6 py-14 text-center">
+                  <CheckCircle className="mx-auto mb-4 h-12 w-12 text-slate-300" />
+                  <p className="font-semibold text-slate-500">No pending complaints to review.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {pendingComplaints.map((complaint) => (
+                    <div key={complaint._id} className="flex flex-col gap-4 px-6 py-5 transition-colors duration-200 hover:bg-[#fafbff] md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef1ff] text-[#2f3c97]">
+                          <ClipboardList className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#252b63]">{complaint.category}</p>
+                          <p className="text-sm text-slate-500">{complaint.studentName}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-400">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {new Date(complaint.createdAt).toLocaleDateString()}
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              Block {complaint.location?.block || 'N/A'}, Floor {complaint.location?.floor || 'N/A'}
+                              {complaint.location?.room ? `, Room ${complaint.location.room}` : ''}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <Link to={`/guard/complaint/${complaint._id}`}>
-                        <Button size="sm" variant="outline">Verify</Button>
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Badge className="rounded-full border border-[#f3d989] bg-[#fff2cf] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#9d6a00]">
+                          Pending
+                        </Badge>
+                        <Link to={`/guard/complaint/${complaint._id}`}>
+                          <Button className="rounded-xl bg-[#2f3c97] px-5 text-white hover:bg-[#252b63]">Review</Button>
+                        </Link>
+                      </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

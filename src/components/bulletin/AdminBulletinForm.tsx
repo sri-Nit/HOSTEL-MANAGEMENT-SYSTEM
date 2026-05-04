@@ -43,15 +43,15 @@ const AdminBulletinForm: React.FC = () => {
   };
 
   return (
-    <Card className="border-none shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" />
+    <Card className="campus-panel-soft">
+      <CardHeader className="border-b border-slate-100 px-6 py-5">
+        <CardTitle className="flex items-center gap-2 text-lg font-extrabold text-[#252b63]">
+          <Megaphone className="h-5 w-5 text-[#2f3c97]" />
           Post Announcement
         </CardTitle>
         <CardDescription>Pin a message to the student bulletin board.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 py-5">
         <form onSubmit={handlePost} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -89,10 +89,10 @@ const AdminBulletinForm: React.FC = () => {
             />
           </div>
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1 gap-2">
+            <Button type="submit" className="flex-1 gap-2 rounded-xl bg-[#2f3c97] hover:bg-[#252b63]">
               <Send className="h-4 w-4" /> Pin Announcement
             </Button>
-            <Button type="button" variant="outline" onClick={clearBoard} className="text-red-500 hover:text-red-600">
+            <Button type="button" variant="outline" onClick={clearBoard} className="rounded-xl border-[#efb7b7] text-red-500 hover:bg-[#fff5f5] hover:text-red-600">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

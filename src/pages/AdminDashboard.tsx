@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  ClipboardList, 
-  Clock, 
-  CheckCircle2, 
-  AlertTriangle, 
+import {
+  ClipboardList,
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
   ShieldAlert,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Megaphone
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,17 +37,15 @@ const AdminDashboard: React.FC = () => {
 
   const loadData = () => {
     const allComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    
-    const newStats = {
+
+    setStats({
       total: allComplaints.length,
       pending: allComplaints.filter((c: Complaint) => c.status === 'pending').length,
       inProgress: allComplaints.filter((c: Complaint) => c.status === 'in_progress' || c.status === 'approved').length,
       resolved: allComplaints.filter((c: Complaint) => c.status === 'resolved').length,
       escalated: allComplaints.filter((c: Complaint) => c.status === 'escalated').length,
-    };
-
-    setStats(newStats);
-    setRecentComplaints(allComplaints.slice(0, 5));
+    });
+    setRecentComplaints(allComplaints.slice(0, 6));
   };
 
   useEffect(() => {
@@ -54,121 +53,124 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   const handleReset = () => {
-    if (window.confirm("Are you sure you want to clear all system data? This will reset users and complaints.")) {
+    if (window.confirm('Are you sure you want to clear all system data? This will reset users and complaints.')) {
       clearAllData();
-      showSuccess("System data cleared successfully.");
+      showSuccess('System data cleared successfully.');
       loadData();
       window.location.reload();
     }
   };
 
   const statCards = [
-    { title: 'Total Complaints', value: stats.total, icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Pending Review', value: stats.pending, icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { title: 'In Progress', value: stats.inProgress, icon: TrendingUp, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    { title: 'Resolved', value: stats.resolved, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
-    { title: 'Escalated', value: stats.escalated, icon: ShieldAlert, color: 'text-red-600', bg: 'bg-red-50' },
+    { title: 'Total Complaints', value: stats.total, icon: ClipboardList, tone: 'bg-[#eef1ff] text-[#2f3c97] border-[#cad4ff]' },
+    { title: 'Pending Review', value: stats.pending, icon: Clock, tone: 'bg-[#fff2cf] text-[#9d6a00] border-[#f3d989]' },
+    { title: 'In Progress', value: stats.inProgress, icon: TrendingUp, tone: 'bg-[#fff1e6] text-[#b96315] border-[#ffd1ac]' },
+    { title: 'Resolved', value: stats.resolved, icon: CheckCircle2, tone: 'bg-[#e8f8ee] text-[#2f8b52] border-[#bfe7ce]' },
+    { title: 'Escalated', value: stats.escalated, icon: ShieldAlert, tone: 'bg-[#fdecec] text-[#b94a48] border-[#efb7b7]' },
   ];
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)]">
+    <div className="campus-page flex">
       <Sidebar />
-      <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-800">
-        <div className="container mx-auto max-w-6xl">
-          <div className="mb-8 flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Admin Control Panel</h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                System-wide overview of all hostel maintenance and security issues.
-              </p>
+      <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6 animate-fade-up">
+          <section className="campus-panel-soft px-6 py-6 sm:px-8">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#eef1ff] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#2f3c97]">
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                  Administrative Control
+                </div>
+                <h1 className="campus-section-title">Admin Dashboard</h1>
+                <p className="mt-2 max-w-3xl campus-subtle">
+                  Monitor system activity, review complaint throughput, manage announcements, and oversee escalations from a single command view.
+                </p>
+              </div>
+              <Button variant="outline" onClick={handleReset} className="rounded-full border-[#efb7b7] bg-white px-5 text-[#b94a48] hover:bg-[#fff4f4]">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reset System Data
+              </Button>
             </div>
-            <Button variant="outline" onClick={handleReset} className="text-red-600 border-red-200 hover:bg-red-50">
-              <RefreshCw className="mr-2 h-4 w-4" /> Reset System Data
-            </Button>
-          </div>
+          </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            {statCards.map((card) => (
-              <Card key={card.title} className="border-none shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                  <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {card.title}
-                  </CardTitle>
-                  <div className={`p-2 rounded-full ${card.bg}`}>
-                    <card.icon className={`h-4 w-4 ${card.color}`} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
-                </CardContent>
-              </Card>
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {statCards.map((card, index) => (
+              <div key={card.title} className={`campus-stat animate-fade-up ${card.tone}`} style={{ animationDelay: `${index * 70}ms` }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.18em]">{card.title}</p>
+                  <card.icon className="h-4 w-4" />
+                </div>
+                <div className="mt-4 text-center text-4xl font-extrabold">{card.value}</div>
+              </div>
             ))}
-          </div>
+          </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.65fr_1fr]">
+            <div className="space-y-6">
               <AdminBulletinForm />
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-primary" />
+
+              <Card className="campus-table-shell">
+                <CardHeader className="border-b border-slate-100 px-6 py-5">
+                  <CardTitle className="flex items-center gap-2 text-xl font-extrabold text-[#252b63]">
+                    <AlertTriangle className="h-5 w-5 text-[#2f3c97]" />
                     Recent System Activity
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentComplaints.length === 0 ? (
-                      <p className="text-center py-8 text-muted-foreground">No complaints recorded in the system yet.</p>
-                    ) : (
-                      recentComplaints.map((complaint) => (
-                        <div key={complaint._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex flex-col">
-                            <span className="font-semibold text-sm">{complaint.category}</span>
-                            <span className="text-xs text-muted-foreground">
-                              ID: #{complaint._id.slice(-6)} • {new Date(complaint.createdAt).toLocaleDateString()}
-                            </span>
+                <CardContent className="p-0">
+                  {recentComplaints.length === 0 ? (
+                    <div className="px-6 py-14 text-center">
+                      <Megaphone className="mx-auto mb-4 h-12 w-12 text-slate-300" />
+                      <p className="font-semibold text-slate-500">No complaints recorded in the system yet.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {recentComplaints.map((complaint) => (
+                        <div key={complaint._id} className="flex items-center justify-between gap-4 px-6 py-5 transition-colors duration-200 hover:bg-[#fafbff]">
+                          <div>
+                            <p className="font-bold text-[#252b63]">{complaint.category}</p>
+                            <p className="mt-1 text-sm text-slate-500">{complaint.description}</p>
+                            <p className="mt-2 text-xs font-medium text-slate-400">
+                              #{complaint._id.slice(-6)} • {new Date(complaint.createdAt).toLocaleDateString()}
+                            </p>
                           </div>
-                          <Badge variant={complaint.status === 'escalated' ? 'destructive' : 'secondary'} className="capitalize">
+                          <Badge className="rounded-full border border-[#cad4ff] bg-[#eef1ff] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#2f3c97]">
                             {complaint.status.replace('_', ' ')}
                           </Badge>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
 
             <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">System Status</CardTitle>
+              <Card className="campus-panel-soft">
+                <CardHeader className="border-b border-slate-100 px-6 py-5">
+                  <CardTitle className="text-lg font-extrabold text-[#252b63]">System Status</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 px-6 py-5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Database Connection</span>
-                    <Badge className="bg-green-500">Healthy (Mock)</Badge>
+                    <span className="text-slate-500">Database Connection</span>
+                    <Badge className="rounded-full bg-[#e8f8ee] px-3 py-1 text-[#2f8b52] hover:bg-[#e8f8ee]">Healthy</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Notification Service</span>
-                    <Badge className="bg-green-500">Active</Badge>
+                    <span className="text-slate-500">Notification Service</span>
+                    <Badge className="rounded-full bg-[#e8f8ee] px-3 py-1 text-[#2f8b52] hover:bg-[#e8f8ee]">Active</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Escalation Engine</span>
-                    <Badge className="bg-green-500">Running</Badge>
+                    <span className="text-slate-500">Escalation Engine</span>
+                    <Badge className="rounded-full bg-[#eef1ff] px-3 py-1 text-[#2f3c97] hover:bg-[#eef1ff]">Running</Badge>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-primary text-primary-foreground">
-                <CardHeader>
-                  <CardTitle className="text-lg">Admin Tip</CardTitle>
+              <Card className="overflow-hidden rounded-2xl border border-[#cad4ff] bg-[#2f3c97] text-white shadow-[0_18px_40px_-24px_rgba(42,51,107,0.45)]">
+                <CardHeader className="px-6 py-5">
+                  <CardTitle className="text-lg font-extrabold">Admin Guidance</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm opacity-90">
-                    Complaints that remain "In Progress" for more than 72 hours are automatically moved to the Escalated status for your review.
-                  </p>
+                <CardContent className="px-6 pb-6 text-sm leading-6 text-white/85">
+                  Complaints that stay unresolved beyond the configured escalation threshold are automatically promoted for administrative review, keeping repeated and high-friction issues visible.
                 </CardContent>
               </Card>
             </div>

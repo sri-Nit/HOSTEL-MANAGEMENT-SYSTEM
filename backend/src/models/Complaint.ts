@@ -1,7 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IComplaint extends Document {
-  userId: mongoose.Schema.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   category: string;
   description: string;
   location: {
@@ -12,7 +12,7 @@ export interface IComplaint extends Document {
   images: string[]; // Array of image URLs
   status: 'pending' | 'approved' | 'rejected' | 'in_progress' | 'resolved' | 'escalated';
   rejectionReason?: string;
-  assignedTo?: mongoose.Schema.Types.ObjectId; // Service Personnel ID
+  assignedTo?: mongoose.Types.ObjectId; // Service Personnel ID
   resolutionNote?: string;
   resolutionPhoto?: string;
   createdAt: Date;
