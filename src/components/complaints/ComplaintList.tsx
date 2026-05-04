@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ComplaintTimeline from './ComplaintTimeline';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface Complaint {
-  _id: string;
+  id: string;
   category: string;
   description: string;
   status: string;
-  createdAt: string;
+  created_at: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -21,54 +24,57 @@ const statusColors: Record<string, string> = {
 };
 
 const ComplaintList = () => {
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load complaints from localStorage
-    const savedComplaints = JSON.parse(localStorage.getItem('user_complaints') || '[]');
-    
-    // If no complaints in localStorage, use some default mocks for first-time view
-    if (savedComplaints.length === 0) {
-      const defaultMocks = [
-        {
-          _id: 'mock-1',
-          category: 'Plumbing',
-          description: 'Leaking tap in the bathroom.',
-          status: 'in_progress',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: 'mock-2',
-          category: 'Electrical',
-          description: 'Fan not working in room 101.',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        }
-      ];
-      setComplaints(defaultMocks);
-      localStorage.setItem('user_complaints', JSON.stringify(defaultMocks));
-    } else {
-      setComplaints(savedComplaints);
-    }
-  }, []);
+    const fetchComplaints = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('complaints')
+          .select('*')
+          .eq('user_id', user._id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setComplaints(data || []);
+      } catch (error) {
+        console.error('Error fetching complaints:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchComplaints();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       {complaints.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No complaints found. Submit one to see it here!
+            No complaints found in the database. Submit one to see it here!
           </CardContent>
         </Card>
       ) : (
         complaints.map((complaint) => (
-          <Card key={complaint._id} className="overflow-hidden">
+          <Card key={complaint.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">{complaint.category}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Submitted on {new Date(complaint.createdAt).toLocaleDateString()}
+                    Submitted on {new Date(complaint.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <Badge className={statusColors[complaint.status]}>
